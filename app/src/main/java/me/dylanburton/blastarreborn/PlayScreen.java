@@ -146,8 +146,9 @@ public class PlayScreen extends Screen {
         highscore = 0;
 
         if (currentLevel == 1) {
-            enemiesFlying.add(new Enemy(fighter, 20));
-            enemiesFlying.add(new Enemy(fighter, 20));
+            for (int i = 1; i < 4; i++) {
+                enemiesFlying.add(new Enemy(fighter, i * 10));
+            }
         }
 
         try {
@@ -265,9 +266,13 @@ public class PlayScreen extends Screen {
             while (enemiesIterator.hasNext()) {
                 Enemy e = enemiesIterator.next();
                 //this needs to be replaced with some sort of competent movement behavior.
-                e.x += e.fighterSpeed;
+                e.x += e.vx;
+                e.y += e.vy;
                 if (e.x >= width * 4 / 5 || e.x <= 0) {
-                    e.fighterSpeed = -e.fighterSpeed;
+                    e.vx = -e.vx;
+                }
+                if (e.y >= MIN_HEIGHT || e.y <= 0) {
+                    e.vy = -e.vy;
                 }
             }
         }
@@ -331,7 +336,8 @@ public class PlayScreen extends Screen {
                     c.drawBitmap(e.getBitmap(), e.x, e.y, p);
 
                     if (e.hasCollision(spaceshipLaserX, spaceshipLaserY) || e.hasCollision(spaceshipLaserX + spaceship.getWidth() * 64 / 100, spaceshipLaserY)) {
-                        spaceshipLaserX = 4000;
+                        spaceshipLaserX = 4000; // off-screen
+                        score += e.points;
                         enemiesFlying.remove(e);
                         shipExplosions.add(new ShipExplosion(e.x, e.y + e.getBitmap().getHeight() / 4, shipExplosions.size()));
                         hitContact = System.nanoTime();
@@ -406,8 +412,8 @@ public class PlayScreen extends Screen {
     DisplayMetrics dm = new DisplayMetrics();
 
     @Override
-    public boolean onTouch(MotionEvent e) {
-        switch (e.getAction()) {
+    public boolean onTouch(MotionEvent event) {
+        switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
 
                 break;
@@ -416,10 +422,10 @@ public class PlayScreen extends Screen {
                 synchronized (spaceship) {
                     spaceshipBounds = new Rect(spaceshipX, spaceshipY, spaceshipX + spaceship.getWidth(), spaceshipY + spaceship.getHeight());
 
-                    if (spaceshipBounds.contains((int) e.getX(), (int) e.getY())) {
+                    if (spaceshipBounds.contains((int) event.getX(), (int) event.getY())) {
                         spaceshipIsMoving = true;
-                        spaceshipX = (int) e.getX() - spaceship.getWidth() / 2;
-                        spaceshipY = (int) e.getY() - spaceship.getHeight() / 2;
+                        spaceshipX = (int) event.getX() - spaceship.getWidth() / 2;
+                        spaceshipY = (int) event.getY() - spaceship.getHeight() / 2;
 
                     }
                 }
@@ -442,17 +448,17 @@ public class PlayScreen extends Screen {
         Bitmap btm;
         float x = 0;
         float y = 0;
-        double vx = 0.1;
-        double vy = 0.1;
+        public int initv = 5;
+        double vx = initv;
+        double vy = initv;
         int points;
         float width = 0; // width onscreen
         float height = 0;  // height onscreen
         float halfWidth = 0;  // convenience
         float halfHeight = 0;
-        final float HALF_DIVISOR = 1.9f;  //changing the dimensions to be consistent
 
+        final float HALF_DIVISOR = 1.9f;  // changing the dimensions to be consistent
         Rect bounds = new Rect();
-        public int fighterSpeed = 5;
 
         public Enemy(Bitmap bitmap, int points) {
             this.btm = bitmap;
@@ -461,7 +467,8 @@ public class PlayScreen extends Screen {
             this.halfWidth = width / HALF_DIVISOR;
             this.halfHeight = height / HALF_DIVISOR;
             this.points = points;
-            this.fighterSpeed *= random.nextBoolean() ? 1 : -1;
+            this.vx *= random.nextBoolean() ? 1 : -1;
+            this.vy *= random.nextBoolean() ? 1 : -1;
         }
 
         public Bitmap getBitmap() {
