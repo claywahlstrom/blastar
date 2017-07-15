@@ -54,6 +54,8 @@ public class PlayScreen extends Screen {
     static final long ONESEC_NANOS = 1000000000L;
     private enum State {RUNNING, STARTROUND, ROUNDSUMMARY, STARTGAME, PLAYERDIED, GAMEOVER;}
 
+    private Random random = new Random();
+
 
     private volatile State gamestate = State.STARTGAME;
     private List<Enemy> fightersFlying = Collections.synchronizedList(new LinkedList<Enemy>());  // enemies that are still alive
@@ -247,15 +249,12 @@ public class PlayScreen extends Screen {
             Iterator<Enemy> enemiesIterator = fightersFlying.iterator();
             while (enemiesIterator.hasNext()) {
                 Enemy e = enemiesIterator.next();
-                Random random = new Random();
-                e.fighterSpeed *= random.nextBoolean() ? 1 : -1;
                 //this needs to be replaced with some sort of competent movement behavior.
                 e.x += e.fighterSpeed;
                 if(e.x  >= width*4/5 || e.x <= 0){
                     e.fighterSpeed = -e.fighterSpeed;
                 }
             }
-
         }
 
         //spaceship decay
@@ -429,6 +428,7 @@ public class PlayScreen extends Screen {
             this.halfWidth = width/HALF_DIVISOR;
             this.halfHeight = height/HALF_DIVISOR;
             this.points = points;
+            this.fighterSpeed *= random.nextBoolean() ? 1 : -1;
         }
 
         public Bitmap getBitmap(){

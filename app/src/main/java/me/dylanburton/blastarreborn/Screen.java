@@ -23,8 +23,7 @@ public abstract class Screen {
     public abstract boolean onTouch(MotionEvent e);
 
     /**
-     * returns tru if the inpassed event location is within the inpassed rectangle bounds.
-
+     * returns true if the passed event location is within the rectangle bounds.
      */
     boolean eventInBounds(MotionEvent event, int x, int y, int width, int height) {
         float ex = event.getX();
