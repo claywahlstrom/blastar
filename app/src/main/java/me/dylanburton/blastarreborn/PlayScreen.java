@@ -21,10 +21,12 @@ import android.view.View;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -101,16 +103,22 @@ public class PlayScreen extends Screen {
     private static final int START_NUMLIVES = 3;
     private Map<Integer, String> levelMap = new HashMap<Integer, String>();
 
+    private File hsFile;
+
+
     public PlayScreen(MainActivity act) {
         p = new Paint();
         this.act = act;
         AssetManager assetManager = act.getAssets();
+
         try {
 
             //background
             InputStream inputStream = assetManager.open("sidescrollingstars.jpg");
             starbackground = BitmapFactory.decodeStream(inputStream);
             inputStream.close();
+
+            hsFile = act.getFileStreamPath(HIGHSCORE_FILE);
 
             this.MIN_HEIGHT = (int) (starbackground.getHeight() * 0.7);
 
@@ -190,7 +198,7 @@ public class PlayScreen extends Screen {
             // game over!  wrap things up and write high score file
             gamestate = State.GAMEOVER;
             try {
-                BufferedWriter f = new BufferedWriter(new FileWriter(act.getFilesDir() + HIGHSCORE_FILE));
+                BufferedWriter f = new BufferedWriter(new FileWriter(hsFile));
                 f.write(Integer.toString(highscore) + "\n");
                 f.write(Integer.toString(highlev) + "\n");
                 f.close();
@@ -266,14 +274,14 @@ public class PlayScreen extends Screen {
             while (enemiesIterator.hasNext()) {
                 Enemy e = enemiesIterator.next();
                 //this needs to be replaced with some sort of competent movement behavior.
-                e.x += e.vx;
-                e.y += e.vy;
                 if (e.x >= width * 4 / 5 || e.x <= 0) {
                     e.vx = -e.vx;
                 }
                 if (e.y >= MIN_HEIGHT || e.y <= 0) {
                     e.vy = -e.vy;
                 }
+                e.x += e.vx;
+                e.y += e.vy;
             }
         }
 
@@ -338,6 +346,7 @@ public class PlayScreen extends Screen {
                     if (e.hasCollision(spaceshipLaserX, spaceshipLaserY) || e.hasCollision(spaceshipLaserX + spaceship.getWidth() * 64 / 100, spaceshipLaserY)) {
                         spaceshipLaserX = 4000; // off-screen
                         score += e.points;
+                        System.out.println("score = " + score);
                         enemiesFlying.remove(e);
                         shipExplosions.add(new ShipExplosion(e.x, e.y + e.getBitmap().getHeight() / 4, shipExplosions.size()));
                         hitContact = System.nanoTime();
@@ -449,8 +458,8 @@ public class PlayScreen extends Screen {
         float x = 0;
         float y = 0;
         public int initv = 5;
-        double vx = initv;
-        double vy = initv;
+        int vx = initv;
+        int vy = initv;
         int points;
         float width = 0; // width onscreen
         float height = 0;  // height onscreen
@@ -467,8 +476,11 @@ public class PlayScreen extends Screen {
             this.halfWidth = width / HALF_DIVISOR;
             this.halfHeight = height / HALF_DIVISOR;
             this.points = points;
+            this.vx = vx + (random.nextBoolean() ? 1 : -1);
+            this.vy = vy + (random.nextBoolean() ? 1 : -1);
             this.vx *= random.nextBoolean() ? 1 : -1;
             this.vy *= random.nextBoolean() ? 1 : -1;
+            System.out.println(this.vx + ", " + this.vy);
         }
 
         public Bitmap getBitmap() {
