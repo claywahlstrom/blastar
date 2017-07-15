@@ -160,7 +160,7 @@ public class PlayScreen extends Screen {
         }
 
         try {
-            BufferedReader f = new BufferedReader(new FileReader(act.getFilesDir() + HIGHSCORE_FILE));
+            BufferedReader f = new BufferedReader(new FileReader(hsFile));
             highscore = Integer.parseInt(f.readLine());
             highlev = Integer.parseInt(f.readLine());
             f.close();
@@ -276,8 +276,9 @@ public class PlayScreen extends Screen {
                 //this needs to be replaced with some sort of competent movement behavior.
                 if (e.x >= width * 4 / 5 || e.x <= 0) {
                     e.vx = -e.vx;
+
                 }
-                if (e.y >= MIN_HEIGHT || e.y <= 0) {
+                if (e.y >= MIN_HEIGHT || e.y < 0) {
                     e.vy = -e.vy;
                 }
                 e.x += e.vx;
@@ -377,7 +378,8 @@ public class PlayScreen extends Screen {
                     // round ended, by completion or player death, display stats
 
                     if (gamestate == State.ROUNDSUMMARY) {
-
+/*                        System.out.println("score = " + score);
+                        act.onPause();*/
                     } else if (gamestate == State.PLAYERDIED
                             || gamestate == State.GAMEOVER) {
 
