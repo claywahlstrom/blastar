@@ -297,11 +297,9 @@ public class PlayScreen extends Screen {
                     c.drawBitmap(e.getBitmap(), e.x, e.y, p);
 
                     if(e.hasCollision(spaceshipLaserX, spaceshipLaserY)|| e.hasCollision(spaceshipLaserX+spaceship.getWidth()*64/100, spaceshipLaserY)){
-                        spaceshipLaserX = 4000;
+                        score += e.points;
                         fightersFlying.remove(e);
                         playExplosionAnimation(e.x+e.getBitmap().getWidth()/2,e.y+e.getBitmap().getHeight()/2,c,0);
-
-
                     }
                 }
             }
