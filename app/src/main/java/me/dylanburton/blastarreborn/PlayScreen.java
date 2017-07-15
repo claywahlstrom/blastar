@@ -11,6 +11,7 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.support.v4.app.ShareCompat;
 import android.support.v4.view.VelocityTrackerCompat;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -52,13 +53,16 @@ public class PlayScreen extends Screen {
     private final int LEVEL_BATTLESHIP = 5;
     private final int LEVEL_BERSERKER = 6;
     static final long ONESEC_NANOS = 1000000000L;
+
     private enum State {RUNNING, STARTROUND, ROUNDSUMMARY, STARTGAME, PLAYERDIED, GAMEOVER;}
 
     private Random random = new Random();
 
+    private List<Enemy> enemiesFlying = Collections.synchronizedList(new LinkedList<Enemy>());  // enemies that are still alive
+    private List<ShipExplosion> shipExplosions = new LinkedList<ShipExplosion>();  // ship explosions
 
     private volatile State gamestate = State.STARTGAME;
-    private List<Enemy> fightersFlying = Collections.synchronizedList(new LinkedList<Enemy>());  // enemies that are still alive
+
     //width and height of screen
     private int width = 0;
     private int height = 0;
@@ -83,7 +87,7 @@ public class PlayScreen extends Screen {
     private int secondaryMapAnimatorY;
 
     //time stuff
-    Timer timer = new Timer();
+    private long hitContact = 0;
     private long frtime = 0;
     private int fps = 0;
 
@@ -119,8 +123,8 @@ public class PlayScreen extends Screen {
 
             //explosion
             explosion = new Bitmap[12];
-            for(int i = 0; i < 12; i++) {
-                explosion[i] = act.getScaledBitmap("explosion/explosion"+(i+1)+".png");
+            for (int i = 0; i < 12; i++) {
+                explosion[i] = act.getScaledBitmap("explosion/explosion" + (i + 1) + ".png");
             }
 
             p.setTypeface(act.getGameFont());
@@ -141,9 +145,9 @@ public class PlayScreen extends Screen {
         lives = START_NUMLIVES;
         highscore = 0;
 
-        if(currentLevel == 1){
-            fightersFlying.add(new Enemy(fighter, 20));
-            fightersFlying.add(new Enemy(fighter, 20));
+        if (currentLevel == 1) {
+            enemiesFlying.add(new Enemy(fighter, 20));
+            enemiesFlying.add(new Enemy(fighter, 20));
         }
 
         try {
@@ -182,27 +186,38 @@ public class PlayScreen extends Screen {
         lives--;
 
         if (lives == 0) {
-            // game over!  wrap things up and write hi score file
+            // game over!  wrap things up and write high score file
             gamestate = State.GAMEOVER;
             try {
                 BufferedWriter f = new BufferedWriter(new FileWriter(act.getFilesDir() + HIGHSCORE_FILE));
-                f.write(Integer.toString(highscore)+"\n");
-                f.write(Integer.toString(highlev)+"\n");
+                f.write(Integer.toString(highscore) + "\n");
+                f.write(Integer.toString(highlev) + "\n");
                 f.close();
-            } catch (Exception e) { // if we can't write the hi score file...oh well.
+            } catch (Exception e) { // if we can't write the high score file...oh well.
                 Log.d(MainActivity.LOG_ID, "WriteHiScore", e);
             }
         } else
             gamestate = State.PLAYERDIED;
     }
 
-    public void playExplosionAnimation(float x, float y, Canvas c, int recursionCounter){
-        c.drawBitmap(explosion[recursionCounter],x,y,p);
+   /*
+    public void playExplosionAnimation(final float x, final float y, final Canvas c, final int recursionCounter){
+        c.drawBitmap(explosion[4],x,y,p);
+
         if(recursionCounter<11){
-            playExplosionAnimation(x,y,c,recursionCounter+1);
+
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    playExplosionAnimation(x,y,c,recursionCounter+1);
+                }
+            }, 1000);
+
         }
 
     }
+    */
 
 
 
@@ -225,16 +240,16 @@ public class PlayScreen extends Screen {
             width = v.getWidth();
             height = v.getHeight();
 
-            spaceshipX = width/2;
-            spaceshipY = height*2/3;
+            spaceshipX = width / 2;
+            spaceshipY = height * 2 / 3;
 
-            spaceshipLaserX = spaceshipX+spaceship.getWidth()/8;
-            spaceshipLaserY = spaceshipY+spaceship.getHeight()/3;
+            spaceshipLaserX = spaceshipX + spaceship.getWidth() / 8;
+            spaceshipLaserY = spaceshipY + spaceship.getHeight() / 3;
 
             mapAnimatorX = width;
             mapAnimatorY = height;
-            secondaryMapAnimatorX=width;
-            secondaryMapAnimatorY=height;
+            secondaryMapAnimatorX = width;
+            secondaryMapAnimatorY = height;
 
         }
 
@@ -245,37 +260,37 @@ public class PlayScreen extends Screen {
 
         //need a place to update enemy positions, needs some sort of AI
 
-        synchronized (fightersFlying){
-            Iterator<Enemy> enemiesIterator = fightersFlying.iterator();
+        synchronized (enemiesFlying) {
+            Iterator<Enemy> enemiesIterator = enemiesFlying.iterator();
             while (enemiesIterator.hasNext()) {
                 Enemy e = enemiesIterator.next();
                 //this needs to be replaced with some sort of competent movement behavior.
                 e.x += e.fighterSpeed;
-                if(e.x  >= width*4/5 || e.x <= 0){
+                if (e.x >= width * 4 / 5 || e.x <= 0) {
                     e.fighterSpeed = -e.fighterSpeed;
                 }
             }
         }
 
         //spaceship decay
-        if(spaceshipY < MIN_HEIGHT && !spaceshipIsMoving) {
+        if (spaceshipY < MIN_HEIGHT && !spaceshipIsMoving) {
             spaceshipY += DECAY_SPEED;
         }
 
         //resets spaceship laser
         spaceshipLaserY -= 20.0f;
-        if(spaceshipLaserY < -150){
-            spaceshipLaserY = spaceshipY+spaceship.getHeight()/3;
-            spaceshipLaserX = spaceshipX+spaceship.getWidth()/8;
+        if (spaceshipLaserY < -150) {
+            spaceshipLaserY = spaceshipY + spaceship.getHeight() / 3;
+            spaceshipLaserX = spaceshipX + spaceship.getWidth() / 8;
         }
 
         //animator for map background
-        mapAnimatorY+=2.0f;
-        secondaryMapAnimatorY+=2.0f;
+        mapAnimatorY += 2.0f;
+        secondaryMapAnimatorY += 2.0f;
         //this means the stars are off the screen
-        if(mapAnimatorY>=height*2){
+        if (mapAnimatorY >= height * 2) {
             mapAnimatorY = height;
-        }else if(secondaryMapAnimatorY>=height*2){
+        } else if (secondaryMapAnimatorY >= height * 2) {
             secondaryMapAnimatorY = height;
         }
     }
@@ -286,30 +301,48 @@ public class PlayScreen extends Screen {
         try {
 
             // actually draw the screen
-            scaledDst.set(mapAnimatorX-width, mapAnimatorY-height, mapAnimatorX, mapAnimatorY);
-            c.drawBitmap(starbackground,null,scaledDst,p);
+            scaledDst.set(mapAnimatorX - width, mapAnimatorY - height, mapAnimatorX, mapAnimatorY);
+            c.drawBitmap(starbackground, null, scaledDst, p);
             //secondary background for animation. Same as last draw, but instead, these are a height-length higher
-            c.drawBitmap(starbackground,null,new Rect(secondaryMapAnimatorX-width, secondaryMapAnimatorY-(height*2),secondaryMapAnimatorX, secondaryMapAnimatorY-height),p);
+            c.drawBitmap(starbackground, null, new Rect(secondaryMapAnimatorX - width, secondaryMapAnimatorY - (height * 2), secondaryMapAnimatorX, secondaryMapAnimatorY - height), p);
+            //main spaceship
+            c.drawBitmap(spaceship, spaceshipX, spaceshipY, p);
 
 
-            synchronized (fightersFlying) {
-                for(Enemy e: fightersFlying) {
-                    c.drawBitmap(e.getBitmap(), e.x, e.y, p);
+            synchronized (shipExplosions) {
+                for (ShipExplosion se : shipExplosions) {
+                    c.drawBitmap(explosion[se.currentFrame], se.x, se.y, p);
 
-                    if(e.hasCollision(spaceshipLaserX, spaceshipLaserY)|| e.hasCollision(spaceshipLaserX+spaceship.getWidth()*64/100, spaceshipLaserY)){
-                        score += e.points;
-                        fightersFlying.remove(e);
-                        playExplosionAnimation(e.x+e.getBitmap().getWidth()/2,e.y+e.getBitmap().getHeight()/2,c,0);
+                    //semi-clever way of adding a very precise delay (yes, I am scratching my own ass)
+                    if (hitContact + (ONESEC_NANOS / 50) < frtime) {
+                        hitContact = System.nanoTime();
+                        se.nextFrame();
+
+                    }
+
+                    if (se.currentFrame == 11) {
+                        shipExplosions.remove(se.getExplosionNumber());
                     }
                 }
             }
 
-            synchronized (spaceship) {
-                //main spaceship stuff
-                c.drawBitmap(spaceshipLaser, spaceshipLaserX, spaceshipLaserY, p);
-                c.drawBitmap(spaceshipLaser, spaceshipLaserX + spaceship.getWidth() * 64 / 100, spaceshipLaserY, p);
-                c.drawBitmap(spaceship, spaceshipX, spaceshipY, p);
+            synchronized (enemiesFlying) {
+                for (Enemy e : enemiesFlying) {
+                    c.drawBitmap(e.getBitmap(), e.x, e.y, p);
+
+                    if (e.hasCollision(spaceshipLaserX, spaceshipLaserY) || e.hasCollision(spaceshipLaserX + spaceship.getWidth() * 64 / 100, spaceshipLaserY)) {
+                        spaceshipLaserX = 4000;
+                        enemiesFlying.remove(e);
+                        shipExplosions.add(new ShipExplosion(e.x, e.y + e.getBitmap().getHeight() / 4, shipExplosions.size()));
+                        hitContact = System.nanoTime();
+                    }
+                }
             }
+
+            //main spaceship lasers
+            c.drawBitmap(spaceshipLaser, spaceshipLaserX, spaceshipLaserY, p);
+            c.drawBitmap(spaceshipLaser, spaceshipLaserX + spaceship.getWidth() * 64 / 100, spaceshipLaserY, p);
+
 
             p.setColor(Color.WHITE);
             p.setTextSize(act.TS_NORMAL);
@@ -331,7 +364,7 @@ public class PlayScreen extends Screen {
                     if (gamestate == State.ROUNDSUMMARY) {
 
                     } else if (gamestate == State.PLAYERDIED
-                            || gamestate == State.GAMEOVER){
+                            || gamestate == State.GAMEOVER) {
 
                     }
 
@@ -371,6 +404,7 @@ public class PlayScreen extends Screen {
     }
 
     DisplayMetrics dm = new DisplayMetrics();
+
     @Override
     public boolean onTouch(MotionEvent e) {
         switch (e.getAction()) {
@@ -379,13 +413,13 @@ public class PlayScreen extends Screen {
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                synchronized (spaceship){
-                    spaceshipBounds = new Rect(spaceshipX,spaceshipY,spaceshipX+spaceship.getWidth(),spaceshipY+spaceship.getHeight());
+                synchronized (spaceship) {
+                    spaceshipBounds = new Rect(spaceshipX, spaceshipY, spaceshipX + spaceship.getWidth(), spaceshipY + spaceship.getHeight());
 
-                    if(spaceshipBounds.contains((int) e.getX(),(int) e.getY())){
+                    if (spaceshipBounds.contains((int) e.getX(), (int) e.getY())) {
                         spaceshipIsMoving = true;
-                        spaceshipX = (int) e.getX()-spaceship.getWidth()/2;
-                        spaceshipY = (int) e.getY()-spaceship.getHeight()/2;
+                        spaceshipX = (int) e.getX() - spaceship.getWidth() / 2;
+                        spaceshipY = (int) e.getY() - spaceship.getHeight() / 2;
 
                     }
                 }
@@ -393,7 +427,7 @@ public class PlayScreen extends Screen {
                 break;
 
             case MotionEvent.ACTION_UP:
-                spaceshipIsMoving=false;
+                spaceshipIsMoving = false;
 
                 break;
         }
@@ -402,7 +436,8 @@ public class PlayScreen extends Screen {
     }
 
     /**
-     * An enemy is a template for all the enemies     */
+     * An enemy is a template for all the enemies
+     */
     private class Enemy {
         Bitmap btm;
         float x = 0;
@@ -423,23 +458,52 @@ public class PlayScreen extends Screen {
             this.btm = bitmap;
             this.width = bitmap.getWidth();
             this.height = bitmap.getHeight();
-            this.halfWidth = width/HALF_DIVISOR;
-            this.halfHeight = height/HALF_DIVISOR;
+            this.halfWidth = width / HALF_DIVISOR;
+            this.halfHeight = height / HALF_DIVISOR;
             this.points = points;
             this.fighterSpeed *= random.nextBoolean() ? 1 : -1;
         }
 
-        public Bitmap getBitmap(){
+        public Bitmap getBitmap() {
             return btm;
         }
+
         public boolean hasCollision(float collx, float colly) {
             return getBounds().contains((int) collx, (int) colly);
         }
+
         public Rect getBounds() {
-            bounds.set((int)(this.x - getBitmap().getWidth()/2), (int)(this.y-getBitmap().getHeight()/2),
-                    (int)(this.x+getBitmap().getWidth()/2), (int)(this.y+getBitmap().getHeight()/2));
+            bounds.set((int) (this.x - getBitmap().getWidth() / 2), (int) (this.y - getBitmap().getHeight() / 2),
+                    (int) (this.x + getBitmap().getWidth() / 2), (int) (this.y + getBitmap().getHeight() / 2));
             return bounds;
         }
 
+    }
+
+
+    //this is for creating multiple ship explosion animations
+    private class ShipExplosion {
+        float x = 0;
+        float y = 0;
+        int currentFrame = 0;
+        int explosionNumber = 0;
+
+        public ShipExplosion(float x, float y, int explosionNumber) {
+            this.x = x;
+            this.y = y;
+            this.explosionNumber = explosionNumber;
+        }
+
+        public int getCurrentFrame() {
+            return currentFrame;
+        }
+
+        public void nextFrame() {
+            currentFrame++;
+        }
+
+        public int getExplosionNumber() {
+            return explosionNumber;
+        }
     }
 }
