@@ -11,6 +11,7 @@ public class ShipExplosion{
     float x=0;
     float y=0;
     int currentFrame = 0;
+<<<<<<< HEAD
     private long inBetweenFrameTime = 0; //for if the laser hits the enemy
     private Enemy e;
 
@@ -18,6 +19,14 @@ public class ShipExplosion{
         this.x = x;
         this.y = y;
         this.e = e;
+=======
+    private Ship s;
+
+    public ShipExplosion(float x, float y, Ship s){
+        this.x = x;
+        this.y = y;
+        this.s = s;
+>>>>>>> upstream/master
     }
 
     public int getCurrentFrame(){
@@ -43,11 +52,20 @@ public class ShipExplosion{
     public void setY(float y) {
         this.y = y;
     }
+<<<<<<< HEAD
     public Enemy getEnemy() {
         return e;
     }
 
     public void setEnemy(Enemy e) {
         this.e = e;
+=======
+    public Ship getShip() {
+        return s;
+    }
+
+    public void setShip(Enemy e) {
+        this.s = s;
+>>>>>>> upstream/master
     }
 }

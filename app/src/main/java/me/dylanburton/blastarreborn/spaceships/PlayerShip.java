@@ -8,21 +8,19 @@ import java.util.List;
 
 import me.dylanburton.blastarreborn.lasers.MainShipLaser;
 import me.dylanburton.blastarreborn.lasers.ShipLaser;
+import me.dylanburton.blastarreborn.spaceships.Ship;
 
 /**
  * Created by Dylan on 7/16/2017.
  */
 
-public class PlayerShip {
+public class PlayerShip extends Ship{
 
     //main spaceships location and bound
     private Bitmap mainSpaceShip[];
-    private float spaceshipY=0;
-    private float spaceshipX=0;
     private float width;
     private float height;
     private int currentSpaceshipFrame=0; //frame of spaceship for animation
-    private Rect spaceshipBounds;
     private boolean spaceshipIsMoving;
     private List<MainShipLaser> shipLasers = new LinkedList<MainShipLaser>();
     //timer for spawning new laser
@@ -30,6 +28,8 @@ public class PlayerShip {
     private long spaceshipFrameSwitchTime = 0; //for spaceships fire animation
     private long shipHitForTingeTime = 0; //for red tinge on your spaceship
     private boolean playerHitButNotDead = false; //also for red tinge
+    private long shipExplosionActivateTime = 0;
+    private boolean endOfTheRoad = false; //makes sure the explosion is only played once
 
     Rect bounds = new Rect();//bounds for the PlayerShip
 
@@ -44,8 +44,8 @@ public class PlayerShip {
             //screw you
         }
 
-        this.spaceshipX = x;
-        this.spaceshipY = y;
+        this.setX(x);
+        this.setY(y);
         for(int i = 0; i< shipLasers.size(); i++){
             shipLasers.get(i).setBmp(mainSpaceShipLaser);
         }
@@ -66,8 +66,8 @@ public class PlayerShip {
     }
 
     public Rect getBounds() {
-        bounds.set((int)(this.spaceshipX), (int)(this.spaceshipY),
-                (int)(this.spaceshipX+width), (int)(this.spaceshipY+height));
+        bounds.set((int)(this.getX()), (int)(this.getY()),
+                (int)(this.getX()+width), (int)(this.getY()+height));
         return bounds;
     }
 
@@ -84,36 +84,12 @@ public class PlayerShip {
         this.shipLasers = shipLaser;
     }
 
-    public float getSpaceshipY() {
-        return spaceshipY;
-    }
-
-    public void setSpaceshipY(float spaceshipY) {
-        this.spaceshipY = spaceshipY;
-    }
-
-    public float getSpaceshipX() {
-        return spaceshipX;
-    }
-
-    public void setSpaceshipX(float spaceshipX) {
-        this.spaceshipX = spaceshipX;
-    }
-
     public int getCurrentSpaceshipFrame() {
         return currentSpaceshipFrame;
     }
 
     public void setCurrentSpaceshipFrame(int currentSpaceshipFrame) {
         this.currentSpaceshipFrame = currentSpaceshipFrame;
-    }
-
-    public Rect getSpaceshipBounds() {
-        return spaceshipBounds;
-    }
-
-    public void setSpaceshipBounds(Rect spaceshipBounds) {
-        this.spaceshipBounds = spaceshipBounds;
     }
 
     public boolean isSpaceshipMoving() {
@@ -152,6 +128,22 @@ public class PlayerShip {
 
     public void setPlayerHitButNotDead(boolean playerHitButNotDead) {
         this.playerHitButNotDead = playerHitButNotDead;
+    }
+
+    public long getShipExplosionActivateTime() {
+        return shipExplosionActivateTime;
+    }
+
+    public void setShipExplosionActivateTime(long shipExplosionActivateTime) {
+        this.shipExplosionActivateTime = shipExplosionActivateTime;
+    }
+
+    public boolean isEndOfTheRoad() {
+        return endOfTheRoad;
+    }
+
+    public void setEndOfTheRoad(boolean endOfTheRoad) {
+        this.endOfTheRoad = endOfTheRoad;
     }
 
 

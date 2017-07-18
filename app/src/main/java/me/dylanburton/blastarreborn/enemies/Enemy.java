@@ -11,14 +11,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 import me.dylanburton.blastarreborn.lasers.ShipLaser;
+import me.dylanburton.blastarreborn.spaceships.Ship;
 
 /**
  * An enemy is a template for all the enemies     */
-public class Enemy {
+public class Enemy extends Ship {
     private final float HALF_DIVISOR = 1.9f;  //changing the dimensions to be consistent
+    private EnemyType enemyType;
     private Bitmap btm;
-    private float x=0;
-    private float y=500;
     private float vx=0;
     private float vy=0;
     private int points;
@@ -46,10 +46,10 @@ public class Enemy {
     private long lastSlowedDownVelocityTime; //to make enemy slow down before changing direction, need the time to make delays and slow it down gradually
     private long lastSpedUpVelocityTime; //like the last variable, need this to make enemy accelerate gradually as opposed to instantly
     private boolean isSlowingDown = false, isSpeedingUp = false, isFinishedVelocityChange = false;
-
     private float randomVelocityGeneratorX = 0;
     private float randomVelocityGeneratorY = 0; //randomly generated velocities between -5 and 5
     private boolean enemyHasAIStarted = false; //has the AI for this enemy object started yet
+    private boolean isAIDisabled = false;
 
 
     Rect bounds = new Rect();
@@ -60,6 +60,8 @@ public class Enemy {
     }
 
     public Enemy(Bitmap bitmap, EnemyType enemyType) {
+        setX(0);
+        setY(500);
         this.btm = bitmap;
         this.width = bitmap.getWidth();
         this.height = bitmap.getHeight();
@@ -67,6 +69,7 @@ public class Enemy {
         this.halfHeight = height/HALF_DIVISOR;
         this.lives = enemyType.getLives();
         this.points = enemyType.getPoints();
+        this.enemyType = enemyType;
     }
 
     public void spawnShipLasers(){} //to be overwritten by specific enemy classes
@@ -102,8 +105,8 @@ public class Enemy {
     }
 
     public Rect getBounds() {
-        bounds.set((int)(this.x), (int)(this.y-getBitmap().getHeight()),
-                (int)(this.x+getBitmap().getWidth()), (int)(this.y+getBitmap().getHeight()));
+        bounds.set((int)(this.getX()), (int)(this.getY()),
+                (int)(this.getX()+getBitmap().getWidth()), (int)(this.getY()+getBitmap().getHeight()));
         return bounds;
     }
 
@@ -128,22 +131,6 @@ public class Enemy {
 
     public void setBtm(Bitmap btm) {
         this.btm = btm;
-    }
-
-    public float getX() {
-        return x;
-    }
-
-    public void setX(float x) {
-        this.x = x;
-    }
-
-    public float getY() {
-        return y;
-    }
-
-    public void setY(float y) {
-        this.y = y;
     }
 
     public float getVx() {
@@ -276,6 +263,21 @@ public class Enemy {
     }
     public void setHitContactTimeForExplosions(long hitContactTimeForExplosions) {
         this.hitContactTimeForExplosions = hitContactTimeForExplosions;
+    }
+    public boolean isAIDisabled() {
+        return isAIDisabled;
+    }
+
+    public void setAIDisabled(boolean AIDisabled) {
+        isAIDisabled = AIDisabled;
+    }
+
+    public EnemyType getEnemyType() {
+        return enemyType;
+    }
+
+    public void setEnemyType(EnemyType enemyType) {
+        this.enemyType = enemyType;
     }
 
 }
