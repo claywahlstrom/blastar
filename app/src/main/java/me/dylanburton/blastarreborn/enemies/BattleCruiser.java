@@ -32,9 +32,9 @@ public class BattleCruiser extends Enemy {
     public void spawnShipLasers(){
 
         //imperials in our game shoot straight...
-        //addToShipLaserPositionsList(new DiagonalLaser(1, laserBitmap));
+        addToShipLaserPositionsList(new DiagonalLaser(1, laserBitmap));
         addToShipLaserPositionsList(new ShipLaser(laserBitmap));
-        //addToShipLaserPositionsList(new DiagonalLaser(-1, laserBitmap));
+        addToShipLaserPositionsList(new DiagonalLaser(-1, laserBitmap));
 
         this.shipLasers = getShipLaserPositionsList();
 

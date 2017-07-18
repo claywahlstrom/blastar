@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 
 import java.util.List;
 
+import me.dylanburton.blastarreborn.lasers.DiagonalLaser;
 import me.dylanburton.blastarreborn.lasers.ShipLaser;
 
 /**
