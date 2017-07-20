@@ -33,7 +33,6 @@ public class Enemy extends Ship {
     private long hitContactTimeForExplosions = 0; //for if the laser hits the enemy
 
     // firing stuff
-    private List<ShipLaser> shipLasers = new LinkedList<ShipLaser>(); //the lasers for the ship
     private float randomlyGeneratedEnemyFiringTimeInSeconds; //variable for enemy firing stuff
     private long enemyFiringTime = 0; //for controlling enemy firing
 
@@ -65,32 +64,14 @@ public class Enemy extends Ship {
         this.btm = bitmap;
         this.width = bitmap.getWidth();
         this.height = bitmap.getHeight();
-        this.halfWidth = width/HALF_DIVISOR;
-        this.halfHeight = height/HALF_DIVISOR;
+        this.halfWidth = width / HALF_DIVISOR;
+        this.halfHeight = height / HALF_DIVISOR;
         this.lives = enemyType.getLives();
         this.points = enemyType.getPoints();
         this.enemyType = enemyType;
     }
 
-    public void spawnShipLasers(){} //to be overwritten by specific enemy classes
-
-    //update method in playscreen
-    public void updateShipLaserPositions(){
-        for(ShipLaser sl: shipLasers){
-            sl.setX(sl.getX() + sl.getDx());
-            sl.setY(sl.getY() + sl.getDy());
-        }
-
-    }
-
-    public List<ShipLaser> getShipLaserPositionsList(){
-        return shipLasers;
-    }
-
-    public void addToShipLaserPositionsList(ShipLaser sl){
-        shipLasers.add(sl);
-
-    }
+    public void updateShipVelocity(float cpx, float cpy){} //to be overwritten by enemies like berserkers who have their own movement patterns
 
 
     public Bitmap getBitmap(){

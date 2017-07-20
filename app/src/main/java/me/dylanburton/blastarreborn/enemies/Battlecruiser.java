@@ -6,15 +6,11 @@ import android.graphics.Bitmap;
  * Created by Dylan on 7/19/2017.
  */
 
-public class Battleship extends Enemy {
-
-    public Battleship(Bitmap shipBitmap){
+public class Battlecruiser extends Enemy {
+    public Battlecruiser(Bitmap shipBitmap){
         //calls main Enemy constructor
-        super(shipBitmap, EnemyType.BATTLESHIP);
-        setAIDisabled(true);
+        super(shipBitmap, EnemyType.BATTLECRUISER);
 
     }
-
-
 
 }

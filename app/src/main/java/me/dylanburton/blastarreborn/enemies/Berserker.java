@@ -2,49 +2,31 @@ package me.dylanburton.blastarreborn.enemies;
 
 import android.graphics.Bitmap;
 
-import java.util.List;
-
-import me.dylanburton.blastarreborn.lasers.DiagonalLaser;
-import me.dylanburton.blastarreborn.lasers.ShipLaser;
+import me.dylanburton.blastarreborn.utils.HeatSinker;
 
 /**
- * Created by Dylan on 7/17/2017.
- * Edited by claywahlstrom
- *
+ * Created by Dylan on 7/19/2017.
  */
 
-/*
- * Classes will be used to differentiate movement behavior/firing behavior by changing variables for each type of enemy. This will allow for special movements, and various other things
- */
+//berserkers behavior will be charging playership, that's why heatsinker is used
 public class Berserker extends Enemy {
-    private List<ShipLaser> shipLasers; //the lasers for the ship
-    private Bitmap laserBitmap;
+    private HeatSinker hs;
+    private float x;
+    private float y;
 
-    public Berserker(Bitmap shipBitmap, Bitmap laserBitmap){
-        //calls main Enemy constructor
+    public Berserker(Bitmap shipBitmap){
         super(shipBitmap, EnemyType.BERSERKER);
-        this.laserBitmap = laserBitmap;
+        hs = new HeatSinker();
+
 
     }
 
 
     @Override
-    public void spawnShipLasers(){
-
-        //imperials in our game shoot straight...
-        addToShipLaserPositionsList(new DiagonalLaser(1, laserBitmap));
-        addToShipLaserPositionsList(new ShipLaser(laserBitmap));
-        addToShipLaserPositionsList(new DiagonalLaser(-1, laserBitmap));
-
-        this.shipLasers = getShipLaserPositionsList();
-
-        //positions of lasers relative to ship
-        shipLasers.get(shipLasers.size()-3).setPosition(getX()+getBitmap().getWidth()*3/5, getY()+getBitmap().getHeight()/2);
-        shipLasers.get(shipLasers.size()-2).setPosition(getX()+getBitmap().getWidth()/3, getY()+getBitmap().getHeight()*3/4);
-        shipLasers.get(shipLasers.size()-1).setPosition(getX()+getBitmap().getWidth()/6, getY()+getBitmap().getHeight()/2);
-
+    public void updateShipVelocity(float cpx, float cpy){
+        hs.updateHeatsink(x, y, cpx, cpy);
+        setVx(hs.getDx());
+        setVy(hs.getDy());
     }
-
-
 
 }
