@@ -381,7 +381,11 @@ public class PlayScreen extends Screen {
 
                                 //fun explosions
                                 if (e.getLives() == 0) {
-                                    shipExplosions.add(new ShipExplosion(e.getX() - e.getBitmap().getWidth() * 3 / 4, e.getY() - e.getBitmap().getHeight() / 2, e));
+                                    if(e.getEnemyType() == EnemyType.FIGHTER) {
+                                        shipExplosions.add(new ShipExplosion(e.getX() - e.getBitmap().getWidth() * 3 / 4, e.getY() - e.getBitmap().getHeight() / 2, e));
+                                    }else if(e.getEnemyType() == EnemyType.BERSERKER){
+                                        shipExplosions.add(new ShipExplosion(e.getX() + e.getBitmap().getWidth()/3, e.getY() + e.getBitmap().getHeight()/3,e));
+                                    }
                                     //bye bye and disable ai
                                     e.setX(10000);
                                     e.setY(10000);
@@ -584,6 +588,7 @@ public class PlayScreen extends Screen {
                         if (playerShip.hasCollision(shipLasers.get(i).getX(), shipLasers.get(i).getY())) {
 
                             //bye bye
+                            shipLasers.get(i).setX(4000);
                             shipLasers.remove(shipLasers.get(i));
 
                             //need that red tinge which will be in draw method
@@ -685,7 +690,9 @@ public class PlayScreen extends Screen {
                                 //semi-clever way of adding a very precise delay (yes, I am scratching my own ass)
                                 if (e.getExplosionActivateTime() + (ONESEC_NANOS / 20) < frtime) {
                                     e.setExplosionActivateTime(System.nanoTime());
-                                    se.nextFrame();
+                                    if(se.getCurrentFrame() < 11) {
+                                        se.nextFrame();
+                                    }
 
                                 }
 
@@ -707,8 +714,11 @@ public class PlayScreen extends Screen {
             for (ShipExplosion se : shipExplosions) {
                 c.drawBitmap(explosion[se.getCurrentFrame()], se.getX(), se.getY(), p);
 
+                //for some reason, removing the explosion caused major lag. So we're doing it this way
                 if (se.getCurrentFrame() == 11) {
-                    shipExplosions.remove(se);
+                    se.setX(4000);
+                    se.setY(4000);
+                   // shipExplosions.remove(se);
                 }
 
             }
@@ -781,7 +791,9 @@ public class PlayScreen extends Screen {
                         }
 
                         if (se.getCurrentFrame() == 11) {
-                            shipExplosions.remove(se);
+                            se.setX(4000);
+                            se.setY(4000);
+                         //   shipExplosions.remove(se);
 
                             //end of game folks, thanks for playing
                             gamestate = State.PLAYERDIED;
