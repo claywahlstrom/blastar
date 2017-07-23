@@ -1,45 +1,45 @@
-package me.dylanburton.blastarreborn;
+ package me.dylanburton.blastarreborn;
 
-import android.content.res.AssetManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
+        import android.content.res.AssetManager;
+        import android.graphics.Bitmap;
+        import android.graphics.BitmapFactory;
+        import android.graphics.Canvas;
+        import android.graphics.Color;
+        import android.graphics.Paint;
+        import android.graphics.Rect;
+        import android.util.DisplayMetrics;
+        import android.util.Log;
+        import android.view.MotionEvent;
+        import android.view.View;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+        import java.io.BufferedReader;
+        import java.io.BufferedWriter;
+        import java.io.FileReader;
+        import java.io.FileWriter;
+        import java.io.IOException;
+        import java.io.InputStream;
+        import java.util.Collections;
+        import java.util.HashMap;
+        import java.util.Iterator;
+        import java.util.LinkedList;
+        import java.util.List;
+        import java.util.Map;
+        import java.util.Random;
 
-import me.dylanburton.blastarreborn.enemies.Battlecruiser;
-import me.dylanburton.blastarreborn.enemies.Battleship;
-import me.dylanburton.blastarreborn.enemies.Berserker;
-import me.dylanburton.blastarreborn.enemies.Enemy;
-import me.dylanburton.blastarreborn.enemies.EnemyType;
-import me.dylanburton.blastarreborn.enemies.Fighter;
-import me.dylanburton.blastarreborn.enemies.Imperial;
-import me.dylanburton.blastarreborn.lasers.DiagonalLaser;
-import me.dylanburton.blastarreborn.lasers.MainShipLaser;
-import me.dylanburton.blastarreborn.lasers.ShipLaser;
-import me.dylanburton.blastarreborn.levels.Level;
-import me.dylanburton.blastarreborn.levels.Level1;
-import me.dylanburton.blastarreborn.spaceships.PlayerShip;
-import me.dylanburton.blastarreborn.spaceships.ShipExplosion;
+        import me.dylanburton.blastarreborn.enemies.Battlecruiser;
+        import me.dylanburton.blastarreborn.enemies.Battleship;
+        import me.dylanburton.blastarreborn.enemies.Berserker;
+        import me.dylanburton.blastarreborn.enemies.Enemy;
+        import me.dylanburton.blastarreborn.enemies.EnemyType;
+        import me.dylanburton.blastarreborn.enemies.Fighter;
+        import me.dylanburton.blastarreborn.enemies.Imperial;
+        import me.dylanburton.blastarreborn.lasers.DiagonalLaser;
+        import me.dylanburton.blastarreborn.lasers.MainShipLaser;
+        import me.dylanburton.blastarreborn.lasers.ShipLaser;
+        import me.dylanburton.blastarreborn.levels.Level;
+        import me.dylanburton.blastarreborn.levels.Level1;
+        import me.dylanburton.blastarreborn.spaceships.PlayerShip;
+        import me.dylanburton.blastarreborn.spaceships.ShipExplosion;
 
 /**
  * Represents the main screen of play for the game.
@@ -70,8 +70,8 @@ public class PlayScreen extends Screen {
     private int width = 0;
     private int height = 0;
     //bitmap with a rect used for drawing
-    private Bitmap starbackground, spaceship[], spaceshipHit[], spaceshipLaser, fighter, fighterOrb, hitFighter, explosion[], gameOverOverlay, playerDiedText, playerWonText,filledstar,emptystar;
-    private Bitmap imperial, imperialHit, berserker, berserkerHit, battlecruiser, battlecruiserHit, battleship, battleshipHit;
+    private Bitmap starbackground, spaceship[], spaceshipHit[], spaceshipLaser, fighter, fighterOrb, fighterHit, explosion[], gameOverOverlay, playerDiedText, playerWonText,filledstar,emptystar;
+    private Bitmap imperial, imperialHit, berserker, berserkerHit, berserkerReverse, battlecruiser, battlecruiserHit, battleship, battleshipHit;
     private Rect scaledDst = new Rect();
 
     //main spaceship
@@ -115,6 +115,10 @@ public class PlayScreen extends Screen {
 
     //some AI Movement vars, to see how it works, look in Enemy class
     private boolean startDelayReached = false;
+    private float newBerserkerVelocityX = 0;
+    private float newBerserkerVelocityY = 0;
+    private float differenceBerserkerVelocityX;
+    private float differenceBerserkerVelocityY;
     private Random rand = new Random();
 
 
@@ -141,20 +145,21 @@ public class PlayScreen extends Screen {
 
             //enemies
             fighter = act.getScaledBitmap("enemies/fighter.png");
-            hitFighter = act.getScaledBitmap("enemies/hitfighter.png");
+            fighterHit= act.getScaledBitmap("enemies/fighterhit.png");
             fighterOrb = act.getScaledBitmap("enemies/fighterorbs.png");
 
             imperial = act.getScaledBitmap("enemies/imperial.png");
-            imperialHit = act.getScaledBitmap("enemies/hitimperial.png");
+            imperialHit = act.getScaledBitmap("enemies/imperialhit.png");
 
             berserker = act.getScaledBitmap("enemies/berserker.png");
-            berserkerHit = act.getScaledBitmap("enemies/hitberserker.png");
+            berserkerHit = act.getScaledBitmap("enemies/berserkerhit.png");
+            berserkerReverse = act.getScaledBitmap("enemies/berserkerreverse.png");
 
             battlecruiser = act.getScaledBitmap("enemies/battlecruiser.png");
-            battlecruiserHit = act.getScaledBitmap("enemies/hitbattlecruiser.png");
+            battlecruiserHit = act.getScaledBitmap("enemies/battlecruiserhit.png");
 
             battleship = act.getScaledBitmap("enemies/battleship.png");
-            battleshipHit = act.getScaledBitmap("enemies/hitbattleship.png");
+            battleshipHit = act.getScaledBitmap("enemies/battleshiphit.png");
 
 
 
@@ -265,9 +270,12 @@ public class PlayScreen extends Screen {
     }
 
     public void addEnemyExplosion(Enemy e){
-        shipExplosions.add(new ShipExplosion(e.getX() - e.getBitmap().getWidth() * 3 / 4, e.getY() - e.getBitmap().getHeight() / 2, e));
+        if(e.getEnemyType() == EnemyType.FIGHTER) {
+            shipExplosions.add(new ShipExplosion(e.getX() - e.getBitmap().getWidth() * 3 / 4, e.getY() - e.getBitmap().getHeight() / 2, e));
+        }else if(e.getEnemyType() == EnemyType.BERSERKER){
+            shipExplosions.add(new ShipExplosion(e.getX() + e.getBitmap().getWidth()/3, e.getY() + e.getBitmap().getHeight()/3,e));
+        }
         e.setX(10000);
-        e.setY(10000);
         e.setAIDisabled(true);
         enemiesDestroyed++;
 
@@ -307,7 +315,11 @@ public class PlayScreen extends Screen {
         if (gamestate == State.RUNNING ) {
 
             //live percentages for lives rectangle
-            livesPercentage = width/12 - (((width/12-width/2)/5)*lives);
+            if(lives >= 0) {
+                livesPercentage = width / 5 - (((width / 5 - width / 2) / 5) * lives);
+            }else{
+                livesPercentage = width / 5;
+            }
 
             synchronized (enemiesFlying) {
                 Iterator<Enemy> enemiesIterator = enemiesFlying.iterator();
@@ -359,14 +371,9 @@ public class PlayScreen extends Screen {
 
 
                     //ship explodes when charges into opposite side of screen
-                    if(e.getY() > height*8/9 && e.getY() != 10000){
-                        shipExplosions.add(new ShipExplosion(e.getX() - e.getBitmap().getWidth() * 3 / 4, e.getY() - e.getBitmap().getHeight() / 2, e));
-                        e.setX(10000);
-                        e.setY(10000);
-                        e.setAIDisabled(true);
-                        enemiesDestroyed++;
-
-                        e.setExplosionActivateTime(System.nanoTime());
+                    if(e.getY() > height*12/13){
+                        addEnemyExplosion(e);
+                        e.setY(0);
                     }
 
                     for(int i = 0; i < shipLasers.size(); i++) {
@@ -381,18 +388,10 @@ public class PlayScreen extends Screen {
 
                                 //fun explosions
                                 if (e.getLives() == 0) {
-                                    if(e.getEnemyType() == EnemyType.FIGHTER) {
-                                        shipExplosions.add(new ShipExplosion(e.getX() - e.getBitmap().getWidth() * 3 / 4, e.getY() - e.getBitmap().getHeight() / 2, e));
-                                    }else if(e.getEnemyType() == EnemyType.BERSERKER){
-                                        shipExplosions.add(new ShipExplosion(e.getX() + e.getBitmap().getWidth()/3, e.getY() + e.getBitmap().getHeight()/3,e));
-                                    }
-                                    //bye bye and disable ai
-                                    e.setX(10000);
-                                    e.setY(10000);
-                                    e.setAIDisabled(true);
-                                    enemiesDestroyed++;
 
-                                    e.setExplosionActivateTime(System.nanoTime()); //used to delay deletion so orbs dont disappear
+                                    addEnemyExplosion(e);
+
+
                                 } else {
                                     e.setEnemyIsHitButNotDead(true);
                                 }
@@ -430,16 +429,6 @@ public class PlayScreen extends Screen {
 
                     //handles collision for multiple enemies
                     if(!e.isAIDisabled()) {
-                        for (int i = 0; i < enemiesFlying.size(); i++) {
-                            if ((e != enemiesFlying.get(i))) {
-                                if ((e.getX() >= enemiesFlying.get(i).getX() - enemiesFlying.get(i).getBitmap().getWidth() && e.getX() <= enemiesFlying.get(i).getX() + enemiesFlying.get(i).getBitmap().getWidth()) &&
-                                        (e.getY() >= enemiesFlying.get(i).getY() - enemiesFlying.get(i).getBitmap().getHeight() && e.getY() <= enemiesFlying.get(i).getY() + enemiesFlying.get(i).getBitmap().getHeight())) {
-                                    e.setVx(-e.getVx());
-                                }
-
-                            }
-
-                        }
 
 
                         if (startDelayReached) {
@@ -447,6 +436,7 @@ public class PlayScreen extends Screen {
                             e.setY(e.getY() + e.getVy());
 
                         }
+
 
                         //this starts the next stage of enemy movement
                         if (!e.isAIStarted()) {
@@ -456,114 +446,145 @@ public class PlayScreen extends Screen {
                             e.setAIStarted(true);
                         }
 
+                        if (e.getEnemyType() == EnemyType.FIGHTER) {
+                            for (int i = 0; i < enemiesFlying.size(); i++) {
+                                if ((e != enemiesFlying.get(i))) {
+                                    if ((e.getX() >= enemiesFlying.get(i).getX() - enemiesFlying.get(i).getBitmap().getWidth() && e.getX() <= enemiesFlying.get(i).getX() + enemiesFlying.get(i).getBitmap().getWidth()) &&
+                                            (e.getY() >= enemiesFlying.get(i).getY() - enemiesFlying.get(i).getBitmap().getHeight() && e.getY() <= enemiesFlying.get(i).getY() + enemiesFlying.get(i).getBitmap().getHeight())) {
+                                        e.setVx(-e.getVx());
+                                    }
 
-                        //I present to you, next stage of enemy movement and all its glory
-                        if (e.isFinishedVelocityChange()) {
-
-
-                            e.setRandomVelocityGeneratorX((rand.nextInt(10000) + 1000) / 1000);
-                            e.setRandomVelocityGeneratorY((rand.nextInt(10000) + 1000) / 1000);
-
-
-                            //makes it negative if it is bigger than 5
-                            if (e.getRandomVelocityGeneratorX() > 5) {
-                                e.setRandomVelocityGeneratorX(e.getRandomVelocityGeneratorX() - 11);
-                            }
-
-
-                            if (e.getRandomVelocityGeneratorY() > 5) {
-                                e.setRandomVelocityGeneratorY(e.getRandomVelocityGeneratorY() - 11);
-
-                            }
-
-                            //makes the ship change direction soon if they are in a naughty area
-                            if (e.getY() > height / 6) {
-                                if (e.getRandomVelocityGeneratorY() > 0) {
-                                    e.setRandomVelocityGeneratorY(-e.getRandomVelocityGeneratorY());
-                                }
-                            } else if (e.getY() < height / 12) {
-                                if (e.getRandomVelocityGeneratorY() < 0) {
-                                    e.setRandomVelocityGeneratorY(-e.getRandomVelocityGeneratorY());
                                 }
 
                             }
 
-                            if (!e.isSlowingDown()) {
-                                e.setSpeedingUp(true);
+
+                            //I present to you, next stage of enemy movement and all its glory
+                            if (e.isFinishedVelocityChange()) {
+
+
+                                e.setRandomVelocityGeneratorX((rand.nextInt(10000) + 1000) / 1000);
+                                e.setRandomVelocityGeneratorY((rand.nextInt(10000) + 1000) / 1000);
+
+
+                                //makes it negative if it is bigger than 5
+                                if (e.getRandomVelocityGeneratorX() > 5) {
+                                    e.setRandomVelocityGeneratorX(e.getRandomVelocityGeneratorX() - 11);
+                                }
+
+
+                                if (e.getRandomVelocityGeneratorY() > 5) {
+                                    e.setRandomVelocityGeneratorY(e.getRandomVelocityGeneratorY() - 11);
+
+                                }
+
+                                //makes the ship change direction soon if they are in a naughty area
+                                if (e.getY() > height / 6) {
+                                    if (e.getRandomVelocityGeneratorY() > 0) {
+                                        e.setRandomVelocityGeneratorY(-e.getRandomVelocityGeneratorY());
+                                    }
+                                } else if (e.getY() < height / 12) {
+                                    if (e.getRandomVelocityGeneratorY() < 0) {
+                                        e.setRandomVelocityGeneratorY(-e.getRandomVelocityGeneratorY());
+                                    }
+
+                                }
+
+                                if (!e.isSlowingDown()) {
+                                    e.setSpeedingUp(true);
+                                }
+
+                                e.setFinishedRandomGeneratorsTime(System.nanoTime());
+
+                                //just initiating these guys
+                                e.setLastSlowedDownVelocityTime(e.getFinishedRandomGeneratorsTime());
+                                e.setLastSpedUpVelocityTime(e.getFinishedRandomGeneratorsTime());
+
+                                e.setFinishedVelocityChange(false);
+
                             }
 
-                            e.setFinishedRandomGeneratorsTime(System.nanoTime());
+                            if (e.isSlowingDown() && (frtime > e.getLastSlowedDownVelocityTime() + (ONESEC_NANOS / 100))) {
+                                //obv will never be 0. Half a second for slowing down, then speeding up later on
+                                e.setVx(e.getVx() - (e.getVx() / 50));
+                                e.setVy(e.getVy() - (e.getVy() / 50));
 
-                            //just initiating these guys
-                            e.setLastSlowedDownVelocityTime(e.getFinishedRandomGeneratorsTime());
-                            e.setLastSpedUpVelocityTime(e.getFinishedRandomGeneratorsTime());
+                                //borders
+                                if (e.getX() < 0 || e.getX() > width * 4 / 5) {
+                                    //this check disables the ability for ship to get too far and then freeze in place
+                                    if (e.getX() < 0) {
+                                        e.setX(0);
+                                    } else if (e.getX() > width * 4 / 5) {
+                                        e.setX(width * 4 / 5);
+                                    }
 
-                            e.setFinishedVelocityChange(false);
+                                    e.setVx(-e.getVx());
+                                    e.setRandomVelocityGeneratorX(-e.getRandomVelocityGeneratorX());
+                                }
+
+                                //so we do this
+                                if ((e.getVx() > -1 && e.getVx() < 1) && (e.getVy() > -1 && e.getVy() < 1)) {
+                                    e.setSlowingDown(false);
+                                    e.setSpeedingUp(true);
+
+                                }
+                                //delays this slowing down process a little
+                                e.setLastSlowedDownVelocityTime(System.nanoTime());
+
+                            } else if (e.isSpeedingUp() && (frtime > e.getLastSpedUpVelocityTime() + (ONESEC_NANOS / 100))) {
+
+
+                                //will not have asymptotes like the last one
+                                e.setVx(e.getVx() + (e.getRandomVelocityGeneratorX() / 50));
+                                e.setVy(e.getVy() + (e.getRandomVelocityGeneratorY() / 50));
+
+                                //borders for x and y
+                                if (e.getX() < 0 || e.getX() > width * 4 / 5) {
+                                    //this check disables the ability for ship to get too far and then freeze in place
+                                    if (e.getX() < 0) {
+                                        e.setX(0);
+                                    } else if (e.getX() > width * 4 / 5) {
+                                        e.setX(width * 4 / 5);
+                                    }
+
+                                    e.setVx(-e.getVx());
+                                    e.setRandomVelocityGeneratorX(-e.getRandomVelocityGeneratorX());
+                                }
+
+                                //just adding a margin of error regardless though, if the nanoseconds were slightly off it would not work
+                                if ((e.getVx() > e.getRandomVelocityGeneratorX() - 1 && e.getVx() < e.getRandomVelocityGeneratorX() + 1) && (e.getVy() > e.getRandomVelocityGeneratorY() - 1 || e.getVy() < e.getRandomVelocityGeneratorY() + 1)) {
+                                    e.setSlowingDown(true);
+                                    e.setSpeedingUp(false);
+                                    e.setFinishedVelocityChange(true);
+                                }
+
+                                //delays speeding up process
+                                e.setLastSpedUpVelocityTime(System.nanoTime());
+                            }
+                        } else if (e.getEnemyType() == EnemyType.BERSERKER) {
+
+                            Berserker b = (Berserker) e;
+                            if (b.getUpdateVelocityTime() + (ONESEC_NANOS) < frtime) {
+                                newBerserkerVelocityX = b.updateShipVelocityX(playerShip.getX(), playerShip.getY());
+                                newBerserkerVelocityY = b.updateShipVelocityY(playerShip.getX(), playerShip.getY());
+
+                                differenceBerserkerVelocityX = newBerserkerVelocityX - e.getVx();
+                                differenceBerserkerVelocityY = newBerserkerVelocityY - e.getVy();
+
+                                b.setUpdateVelocityTime(System.nanoTime());
+                            }
+
+                            //acceleration
+                            if (b.getLastAccelerationTime() + (ONESEC_NANOS / 30) < frtime) {
+                                e.setVx(e.getVx() + (differenceBerserkerVelocityX / 30));
+                                e.setVy(e.getVy() + (differenceBerserkerVelocityY / 30));
+                                b.setLastAccelerationTime(System.nanoTime());
+                            }
+
+
+
 
                         }
-
-                        if (e.isSlowingDown() && (frtime > e.getLastSlowedDownVelocityTime() + (ONESEC_NANOS / 100))) {
-                            //obv will never be 0. Half a second for slowing down, then speeding up later on
-                            e.setVx(e.getVx() - (e.getVx() / 50));
-                            e.setVy(e.getVy() - (e.getVy() / 50));
-
-                            //borders
-                            if (e.getX() < 0 || e.getX() > width * 4 / 5) {
-                                //this check disables the ability for ship to get too far and then freeze in place
-                                if (e.getX() < 0) {
-                                    e.setX(0);
-                                } else if (e.getX() > width * 4 / 5) {
-                                    e.setX(width * 4 / 5);
-                                }
-
-                                e.setVx(-e.getVx());
-                                e.setRandomVelocityGeneratorX(-e.getRandomVelocityGeneratorX());
-                            }
-
-                            //so we do this
-                            if ((e.getVx() > -1 && e.getVx() < 1) && (e.getVy() > -1 && e.getVy() < 1)) {
-                                e.setSlowingDown(false);
-                                e.setSpeedingUp(true);
-
-                            }
-                            //delays this slowing down process a little
-                            e.setLastSlowedDownVelocityTime(System.nanoTime());
-
-                        } else if (e.isSpeedingUp() && (frtime > e.getLastSpedUpVelocityTime() + (ONESEC_NANOS / 100))) {
-
-
-                            //will not have asymptotes like the last one
-                            e.setVx(e.getVx() + (e.getRandomVelocityGeneratorX() / 50));
-                            e.setVy(e.getVy() + (e.getRandomVelocityGeneratorY() / 50));
-
-                            //borders for x and y
-                            if (e.getX() < 0 || e.getX() > width * 4 / 5) {
-                                //this check disables the ability for ship to get too far and then freeze in place
-                                if (e.getX() < 0) {
-                                    e.setX(0);
-                                } else if (e.getX() > width * 4 / 5) {
-                                    e.setX(width * 4 / 5);
-                                }
-
-                                e.setVx(-e.getVx());
-                                e.setRandomVelocityGeneratorX(-e.getRandomVelocityGeneratorX());
-                            }
-
-                            //just adding a margin of error regardless though, if the nanoseconds were slightly off it would not work
-                            if ((e.getVx() > e.getRandomVelocityGeneratorX() - 1 && e.getVx() < e.getRandomVelocityGeneratorX() + 1) && (e.getVy() > e.getRandomVelocityGeneratorY() - 1 || e.getVy() < e.getRandomVelocityGeneratorY() + 1)) {
-                                e.setSlowingDown(true);
-                                e.setSpeedingUp(false);
-                                e.setFinishedVelocityChange(true);
-                            }
-
-                            //delays speeding up process
-                            e.setLastSpedUpVelocityTime(System.nanoTime());
-                        }
-                    }else if(e.getEnemyType() == EnemyType.BERSERKER){
-                        e.updateShipVelocity(playerShip.getX(), playerShip.getY());
-
-
-
                     }
 
 
@@ -672,7 +693,7 @@ public class PlayScreen extends Screen {
                             if(e.getEnemyType() == EnemyType.BERSERKER){
                                 c.drawBitmap(berserkerHit, e.getX(), e.getY(), p);
                             }else if(e.getEnemyType() == EnemyType.FIGHTER) {
-                                c.drawBitmap(hitFighter, e.getX(), e.getY(), p);
+                                c.drawBitmap(fighterHit, e.getX(), e.getY(), p);
                             }
 
                             if (e.getHitContactTimeForTinge() + (ONESEC_NANOS / 10) < frtime) {
@@ -680,7 +701,15 @@ public class PlayScreen extends Screen {
                             }
 
                         } else {
-                            c.drawBitmap(e.getBitmap(), e.getX(), e.getY(), p);
+                            if(e.getEnemyType() == EnemyType.FIGHTER) {
+                                c.drawBitmap(e.getBitmap(), e.getX(), e.getY(), p);
+                            }else if(e.getEnemyType() == EnemyType.BERSERKER){
+                                if(e.getVy()>0){
+                                    c.drawBitmap(e.getBitmap(), e.getX(), e.getY(), p);
+                                }else{
+                                    c.drawBitmap(berserkerReverse, e.getX(), e.getY(), p);
+                                }
+                            }
                         }
 
                         //explosion time checker
@@ -718,7 +747,7 @@ public class PlayScreen extends Screen {
                 if (se.getCurrentFrame() == 11) {
                     se.setX(4000);
                     se.setY(4000);
-                   // shipExplosions.remove(se);
+                    // shipExplosions.remove(se);
                 }
 
             }
@@ -791,9 +820,7 @@ public class PlayScreen extends Screen {
                         }
 
                         if (se.getCurrentFrame() == 11) {
-                            se.setX(4000);
-                            se.setY(4000);
-                         //   shipExplosions.remove(se);
+                            shipExplosions.remove(se);
 
                             //end of game folks, thanks for playing
                             gamestate = State.PLAYERDIED;
@@ -812,10 +839,15 @@ public class PlayScreen extends Screen {
                 }
             }
 
-            p.setColor(Color.rgb(150,150,150));
+
+
+            //live counter
+            p.setColor(Color.rgb(20,20,20));
             c.drawRect(0, 0 , width, height/17, p);
             p.setColor(Color.rgb(255,0,0));
-            c.drawRect(width/12, height/30, livesPercentage, height/20, p);
+            c.drawRect(width/5, height/30, livesPercentage, height/20, p);
+            p.setColor(Color.rgb(255,255,255));
+            drawCenteredText(c, "Life", height/20, p, -width*35/100);
 
             p.setColor(Color.WHITE);
             p.setTextSize(act.TS_NORMAL);
@@ -838,52 +870,52 @@ public class PlayScreen extends Screen {
                     //playerwon
                     c.drawBitmap(playerWonText, width / 5, height / 3, p);
 
-                   if(starsEarned == 3){
-                       c.drawBitmap(filledstar, width/10, height/2,p);
-                       if(firstStarTimeCheck == 0) {
-                           firstStarTimeCheck = System.nanoTime();
-                       }
-                       if(firstStarTimeCheck + (ONESEC_NANOS/2) < frtime) {
-                           c.drawBitmap(filledstar, width * 4 / 10, height / 2, p);
-                           if(secondStarTimeCheck == 0) {
-                               secondStarTimeCheck = System.nanoTime();
-                           }
+                    if(starsEarned == 3){
+                        c.drawBitmap(filledstar, width/10, height/2,p);
+                        if(firstStarTimeCheck == 0) {
+                            firstStarTimeCheck = System.nanoTime();
+                        }
+                        if(firstStarTimeCheck + (ONESEC_NANOS/2) < frtime) {
+                            c.drawBitmap(filledstar, width * 4 / 10, height / 2, p);
+                            if(secondStarTimeCheck == 0) {
+                                secondStarTimeCheck = System.nanoTime();
+                            }
 
-                           if(secondStarTimeCheck + (ONESEC_NANOS/2) < frtime) {
-                               c.drawBitmap(filledstar, width * 7 / 10, height / 2, p);
-                           }
-                       }
-                   }else if (starsEarned == 2){
-                       c.drawBitmap(filledstar, width/10, height/2,p);
-                       if(firstStarTimeCheck == 0) {
-                           firstStarTimeCheck = System.nanoTime();
-                       }
-                       if(firstStarTimeCheck + (ONESEC_NANOS/2) < frtime) {
-                           c.drawBitmap(filledstar, width * 4 / 10, height / 2, p);
-                           if(secondStarTimeCheck == 0) {
-                               secondStarTimeCheck = System.nanoTime();
-                           }
+                            if(secondStarTimeCheck + (ONESEC_NANOS/2) < frtime) {
+                                c.drawBitmap(filledstar, width * 7 / 10, height / 2, p);
+                            }
+                        }
+                    }else if (starsEarned == 2){
+                        c.drawBitmap(filledstar, width/10, height/2,p);
+                        if(firstStarTimeCheck == 0) {
+                            firstStarTimeCheck = System.nanoTime();
+                        }
+                        if(firstStarTimeCheck + (ONESEC_NANOS/2) < frtime) {
+                            c.drawBitmap(filledstar, width * 4 / 10, height / 2, p);
+                            if(secondStarTimeCheck == 0) {
+                                secondStarTimeCheck = System.nanoTime();
+                            }
 
-                           if(secondStarTimeCheck + (ONESEC_NANOS/2) < frtime) {
-                               c.drawBitmap(emptystar, width * 7 / 10, height / 2, p);
-                           }
-                       }
-                   }else{
-                       c.drawBitmap(filledstar, width/10, height/2,p);
-                       if(firstStarTimeCheck == 0) {
-                           firstStarTimeCheck = System.nanoTime();
-                       }
-                       if(firstStarTimeCheck + (ONESEC_NANOS/2) < frtime) {
-                           c.drawBitmap(emptystar, width * 4 / 10, height / 2, p);
-                           if(secondStarTimeCheck == 0) {
-                               secondStarTimeCheck = System.nanoTime();
-                           }
+                            if(secondStarTimeCheck + (ONESEC_NANOS/2) < frtime) {
+                                c.drawBitmap(emptystar, width * 7 / 10, height / 2, p);
+                            }
+                        }
+                    }else{
+                        c.drawBitmap(filledstar, width/10, height/2,p);
+                        if(firstStarTimeCheck == 0) {
+                            firstStarTimeCheck = System.nanoTime();
+                        }
+                        if(firstStarTimeCheck + (ONESEC_NANOS/2) < frtime) {
+                            c.drawBitmap(emptystar, width * 4 / 10, height / 2, p);
+                            if(secondStarTimeCheck == 0) {
+                                secondStarTimeCheck = System.nanoTime();
+                            }
 
-                           if(secondStarTimeCheck + (ONESEC_NANOS/2) < frtime) {
-                               c.drawBitmap(emptystar, width * 7 / 10, height / 2, p);
-                           }
-                       }
-                   }
+                            if(secondStarTimeCheck + (ONESEC_NANOS/2) < frtime) {
+                                c.drawBitmap(emptystar, width * 7 / 10, height / 2, p);
+                            }
+                        }
+                    }
 
 
                 }

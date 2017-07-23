@@ -20,6 +20,7 @@ public class Level1 extends Level{
 
     public void checkLevelSequence(){
 
+        //todo fix bug that if too many fighters are destroyed at the same time, the level doesnt progress
         if(ps.getEnemiesDestroyed() >=0 && ps.getEnemiesDestroyed() < 2 && updateCheckerBoundary == 0) {
             for (int i = 0; i < 3; i++) {
                 ps.spawnEnemy(EnemyType.FIGHTER);
@@ -38,7 +39,7 @@ public class Level1 extends Level{
             updateCheckerBoundary = 9;
         }
 
-        if(ps.getEnemiesDestroyed() == 9){
+        if(ps.getEnemiesDestroyed() == 10){
             ps.playerWon();
         }
 
