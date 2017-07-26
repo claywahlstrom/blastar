@@ -30,6 +30,7 @@ public class EntryScreen extends Screen {
     private Rect playBtnBounds = null;
     private Rect exitBtnBounds = null;
     private Rect scaledAsteroidDst = new Rect();
+    private Rect grayedShipBounds = new Rect();
     private long lastSpawnedAsteroid = 0;
 
     private long lastSpedUpTime = 0;
@@ -90,8 +91,18 @@ public class EntryScreen extends Screen {
             realHeight = v.getHeight();
             realWidth = v.getWidth();
 
-            grayedShipX = width*42/100;
-            grayedShipY = height*68/100;
+            grayedShipX = width*49/100;
+            grayedShipY = height*72/100;
+
+            // initialize button locations
+            playBtnBounds = new Rect(width/4,
+                    height/10,
+                    width*3/4,
+                    height/4);
+            exitBtnBounds = new Rect(width*7/10,
+                    height*2/3,
+                    width*8/9,
+                    height*4/5);
         }
 
     }
@@ -107,13 +118,14 @@ public class EntryScreen extends Screen {
         frtime = System.nanoTime();
 
 
-        if (playBtnBounds == null) {
-            // initialize button locations
-            playBtnBounds = new Rect(width/4,
+        if(startAnimation){
+
+            //keeps updating it by the scale factor
+            playBtnBounds.set(width/4,
                     height/10,
                     width*3/4,
                     height/4);
-            exitBtnBounds = new Rect(width*7/10,
+            exitBtnBounds.set(width*7/10,
                     height*2/3,
                     width*8/9,
                     height*4/5);
@@ -156,12 +168,29 @@ public class EntryScreen extends Screen {
                     a.currentAsteroidY[1] = a.currentAsteroidY[1] + a.YScale;
                     a.currentAsteroidY[0] = a.currentAsteroidY[0] - a.YScale;
 
+                    //lets get a move on...
+                    if(startAnimation){
+                        a.currentAsteroidX[1] = a.currentAsteroidX[1] - 50;
+                        a.currentAsteroidX[0] = a.currentAsteroidX[0] - 70;
+
+                        a.currentAsteroidY[1] = a.currentAsteroidY[1] + 3;
+                        a.currentAsteroidY[0] = a.currentAsteroidY[0] - 3;
+                    }
+
                 } else {
                     a.currentAsteroidX[0] = a.currentAsteroidX[0] + a.smallerXScale;
                     a.currentAsteroidX[1] = a.currentAsteroidX[1] + a.largerXScale;
 
                     a.currentAsteroidY[1] = a.currentAsteroidY[1] + a.YScale;
                     a.currentAsteroidY[0] = a.currentAsteroidY[0] - a.YScale;
+
+                    if(startAnimation){
+                        a.currentAsteroidX[0] = a.currentAsteroidX[0] + 50;
+                        a.currentAsteroidX[1] = a.currentAsteroidX[1] + 70;
+
+                        a.currentAsteroidY[1] = a.currentAsteroidY[1] + 3;
+                        a.currentAsteroidY[0] = a.currentAsteroidY[0] - 3;
+                    }
 
                 }
                 a.lastScaleUpTime = System.nanoTime();
@@ -175,15 +204,17 @@ public class EntryScreen extends Screen {
         c.drawBitmap(screenbtm, null, scaledDst, p);
 
 
-        c.drawBitmap(grayedShip, grayedShipX, grayedShipY, p);
+        //some might wonder how I come up with these numbers, lets just say I have the world's best eye for estimation
+        grayedShipBounds.set((int) grayedShipX-(width*16/100)/2,(int) grayedShipY-(height*77/1000)/2,(int) grayedShipX + (width*16/100)/2,(int) grayedShipY + (height*77/1000)/2);
+        if(startAnimation){
+            grayedShipY = grayedShipY+ realHeight/28;
+        }
+        c.drawBitmap(grayedShip, null, grayedShipBounds, p);
 
         if(lastSpedUpTime + (ONESEC_NANOS/30) < frtime) {
 
             if(grayedShipDx > .95 || grayedShipDx < -1){
                 grayedShipVelocityXChange = - grayedShipVelocityXChange;
-            }
-            if(startAnimation){
-                grayedShipY = grayedShipY + 250;
             }
 
             grayedShipDx = grayedShipDx + grayedShipVelocityXChange;
@@ -211,12 +242,15 @@ public class EntryScreen extends Screen {
         p.setColor(Color.rgb(255,55,55));
         p.setTextSize(200);
 
+        p.setTextSize((playBtnBounds.right - playBtnBounds.left)*2/5);
         if(!startAnimation) {
-            drawCenteredText(c, "Play", realHeight / 6, p, 0);
+            c.drawText("Play", realWidth*33/100, realHeight/6,p);
         }else{
             playSubtract = playSubtract + 30;
-            drawCenteredText(c, "Play", realHeight / 6 - playSubtract, p, 0);
+            c.drawText("Play", realWidth*33/100, realHeight/6-playSubtract,p);
         }
+
+        p.setTextSize(act.TS_NORMAL);
         p.setColor(Color.rgb(0,0,0));
         p.setTextSize(70);
         drawCenteredText(c, "About", height*73/100,p,-width*31/100);
@@ -226,15 +260,14 @@ public class EntryScreen extends Screen {
         p.setColor(Color.rgb(255,255,255));
         drawCenteredText(c, "Blastar", height*14/15,p,0);
 
-        if(startAnimation && startAnimationTime + (ONESEC_NANOS*2) < frtime){
-            width = v.getWidth();
-            height = v.getHeight();
+        if(startAnimation && startAnimationTime + (ONESEC_NANOS/2) < frtime){
+            width = 0;
+            height = 0;
             startAnimation = false;
             yStretch = 0;
             xStretch = 0;
             playSubtract = 0;
-            grayedShipY = height*68/100;
-            act.startGame();
+            act.startLevelScreen();
 
         }
 

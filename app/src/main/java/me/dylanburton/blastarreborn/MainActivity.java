@@ -37,9 +37,11 @@ public class MainActivity extends ActionBarActivity {
     DisplayMetrics dm;
     Screen entryScreen;
     PlayScreen playScreen;
+    LevelScreen levelScreen;
     Screen currentScreen;
     FullScreenView mainView;
     Typeface gamefont;
+    Typeface levelfont;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +54,7 @@ public class MainActivity extends ActionBarActivity {
             dm = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(dm);
             gamefont = Typeface.createFromAsset(getAssets(), "fonts/elitedanger.ttf");
+            levelfont = Typeface.createFromAsset(getAssets(), "fonts/sugarpunch.ttf");
 
             //consistent dpi/screen stuff
             densityscalefactor = (float)dm.densityDpi / EXPECTED_DENSITY;
@@ -70,6 +73,7 @@ public class MainActivity extends ActionBarActivity {
             // create screens
             entryScreen = new EntryScreen(this);
             playScreen = new PlayScreen(this);
+            levelScreen = new LevelScreen(playScreen, this);
 
             mainView = new FullScreenView(this);
             setContentView(mainView);
@@ -85,7 +89,7 @@ public class MainActivity extends ActionBarActivity {
      * load and scale bitmap according to the apps scale factors.
      *
      */
-    Bitmap getScaledBitmap(String fname) throws IOException
+    public Bitmap getScaledBitmap(String fname) throws IOException
     {
         sboptions.inScreenDensity = dm.densityDpi;
         sboptions.inTargetDensity =  dm.densityDpi;
@@ -117,15 +121,15 @@ public class MainActivity extends ActionBarActivity {
             if(currentScreen == playScreen){
 
 
+                levelScreen.resetVariables();
+                currentScreen = levelScreen;
                 playScreen.resetGame();
+
+
+            }else if(currentScreen == levelScreen){
                 currentScreen = entryScreen;
-
-
-
-
+                levelScreen.resetVariables();
             }
-            currentScreen = entryScreen;
-            onWindowFocusChanged(true);
 
         }else{
             System.exit(0);
@@ -153,14 +157,21 @@ public class MainActivity extends ActionBarActivity {
     public Typeface getGameFont() {
         return gamefont;
     }
+    public Typeface getLevelFont() {
+        return levelfont;
+    }
 
 
     /**
      * Start a new game.
      */
-    public void startGame() {
-        this.playScreen.initGame();
+    public void startGame(int level) {
+        this.playScreen.initGame(level);
         currentScreen = this.playScreen;
+    }
+
+    public void startLevelScreen(){
+        currentScreen = this.levelScreen;
     }
 
     /**

@@ -38,6 +38,11 @@
         import me.dylanburton.blastarreborn.lasers.ShipLaser;
         import me.dylanburton.blastarreborn.levels.Level;
         import me.dylanburton.blastarreborn.levels.Level1;
+        import me.dylanburton.blastarreborn.levels.Level2;
+        import me.dylanburton.blastarreborn.levels.Level3;
+        import me.dylanburton.blastarreborn.levels.Level4;
+        import me.dylanburton.blastarreborn.levels.Level5;
+        import me.dylanburton.blastarreborn.levels.Level6;
         import me.dylanburton.blastarreborn.spaceships.PlayerShip;
         import me.dylanburton.blastarreborn.spaceships.ShipExplosion;
 
@@ -86,15 +91,13 @@ public class PlayScreen extends Screen {
     private float elapsedSecs;
     private int fps = 0;
 
-
     //various game things
     private int enemiesDestroyed = 0;
     private int minRoundPass;
     private int currentLevel;
     private int score;
     private int lives;
-    private int highscore=0, highlev=1;
-    private static final String HIGHSCORE_FILE = "highscore.dat";
+    private static final String HIGHSCORE_FILE = "scoredata.dat";
     private static final int START_NUMLIVES = 5;
     private Map<Integer, String> levelMap = new HashMap<Integer, String>();
     private Level level;
@@ -102,9 +105,11 @@ public class PlayScreen extends Screen {
 
     private int livesPercentage; //for lives counter
 
-    private long lastStarDrawTime = 0;
     private int starsEarned = 0;
-    private int starPositionCounter = 3;
+    private int starsEarnedFile = 0;
+    private boolean levelCompleted = false;
+
+    private String[] receivingInfo = new String[12];
 
 
 
@@ -183,32 +188,69 @@ public class PlayScreen extends Screen {
     /**
      * initialize and start a game
      */
-    void initGame() {
+    void initGame(int currentLevel) {
 
         //used for slight delays on spawning things at the beginning
         gameStartTime = System.nanoTime();
         score = 0;
-        currentLevel = 1;
+        this.currentLevel = currentLevel;
         lives = START_NUMLIVES;
-        highscore = 0;
 
         if(currentLevel == 1){
 
-            level = new Level1(this);
+            level = new Level1(this, act);
             level.checkLevelSequence();
 
 
+        }else if(currentLevel == 2){
+
+            level = new Level2(this, act);
+            level.checkLevelSequence();
+
+        }else if(currentLevel == 3){
+
+            level = new Level3(this, act);
+            level.checkLevelSequence();
+
+        }else if(currentLevel == 4){
+
+            level = new Level4(this, act);
+            level.checkLevelSequence();
+
+        }else if(currentLevel == 5){
+
+            level = new Level5(this, act);
+            level.checkLevelSequence();
+
+        }else if(currentLevel == 6){
+
+            level = new Level6(this, act);
+            level.checkLevelSequence();
+
         }
+
+        gamestate = State.RUNNING;
 
         try {
             BufferedReader f = new BufferedReader(new FileReader(act.getFilesDir() + HIGHSCORE_FILE));
-            highscore = Integer.parseInt(f.readLine());
-            highlev = Integer.parseInt(f.readLine());
-            f.close();
-        } catch (Exception e) {
-            Log.d(MainActivity.LOG_ID, "ReadHighScore", e);
+            String receiveString = "";
+
+
+            //gets us to the right place
+            for (int i = 0; i < (currentLevel-1)*2; i++){
+                receivingInfo[i] = f.readLine();
+            }
+
+            f.readLine();//getting past level completed boolean
+            if((receiveString = f.readLine())!= null) {
+                starsEarnedFile = Integer.parseInt(receiveString);
+            }
+
+        }catch (Exception e){
+
         }
-        gamestate = State.STARTGAME;
+
+
     }
 
 
@@ -219,6 +261,7 @@ public class PlayScreen extends Screen {
         height = 0;
         enemiesFlying.clear();
         shipLasers.clear();
+        shipExplosions.clear();
         startDelayReached = false;
         for(Enemy e: enemiesFlying){
             e.setFinishedVelocityChange(false);
@@ -226,25 +269,9 @@ public class PlayScreen extends Screen {
         }
         enemiesDestroyed = 0;
         level.setUpdateCheckerBoundary(0);
+        firstStarTimeCheck = 0;
+        secondStarTimeCheck = 0;
 
-    }
-
-
-    /**
-     * init game for current round
-     */
-    private void initRound() {
-
-        // how many enemies do we need to kill to progress?
-        if (currentLevel == 1)
-            minRoundPass = 10;
-        else if (currentLevel < 4)
-            minRoundPass = 30;
-        else
-            minRoundPass = 40;
-
-
-        gamestate = State.RUNNING;
     }
 
     /**
@@ -286,12 +313,6 @@ public class PlayScreen extends Screen {
         fps = (int) (1 / elapsedSecs);
 
         level.checkLevelSequence();//updates level spawning enemies
-
-        if (gamestate == State.STARTGAME) {
-
-            initRound();
-            return;
-        }
 
         if (width == 0) {
             // set variables that rely on screen size
@@ -672,9 +693,9 @@ public class PlayScreen extends Screen {
 
             // actually draw the screen
             scaledDst.set(mapAnimatorX - width, mapAnimatorY - height, mapAnimatorX, mapAnimatorY);
-            c.drawBitmap(starbackground, null, scaledDst, p);
+            c.drawBitmap(level.getMap(), null, scaledDst, p);
             //secondary background for animation. Same as last draw, but instead, these are a height-length higher
-            c.drawBitmap(starbackground, null, new Rect(secondaryMapAnimatorX - width, secondaryMapAnimatorY - (height * 2), secondaryMapAnimatorX, secondaryMapAnimatorY - height), p);
+            c.drawBitmap(level.getMap(), null, new Rect(secondaryMapAnimatorX - width, secondaryMapAnimatorY - (height * 2), secondaryMapAnimatorX, secondaryMapAnimatorY - height), p);
 
             synchronized (enemiesFlying) {
                 for (Enemy e : enemiesFlying) {
@@ -818,14 +839,6 @@ public class PlayScreen extends Screen {
 
                             //end of game folks, thanks for playing
                             gamestate = State.PLAYERDIED;
-                            try {
-                                BufferedWriter f = new BufferedWriter(new FileWriter(act.getFilesDir() + HIGHSCORE_FILE));
-                                f.write(Integer.toString(highscore)+"\n");
-                                f.write(Integer.toString(highlev)+"\n");
-                                f.close();
-                            } catch (Exception e) { // if we can't write the high score file...oh well.
-                                Log.d(MainActivity.LOG_ID, "WriteHiScore", e);
-                            }
 
                         }
                     }
@@ -847,10 +860,6 @@ public class PlayScreen extends Screen {
             p.setTextSize(act.TS_NORMAL);
             p.setTypeface(act.getGameFont());
 
-            if (score >= highscore) {
-                highscore = score;
-                highlev = currentLevel;
-            }
 
 
             if (gamestate == State.WIN || gamestate == State.PLAYERDIED) {
@@ -915,14 +924,34 @@ public class PlayScreen extends Screen {
                 }
 
                 drawCenteredText(c, "Press to continue", height*4/5,p,0);
+                
+                //write to data file
+                try {
 
-                /*p.setTextSize(act.TS_BIG);
-                p.setColor(Color.RED);
-                drawCenteredText(c, "GamE oVeR!", height /2, p, -2);
-                drawCenteredText(c, "Touch to end game", height * 4 /5, p, -2);
-                p.setColor(Color.WHITE);
-                drawCenteredText(c, "GamE oVeR!", height /2, p, 0);
-                drawCenteredText(c, "Touch to end game", height * 4 /5, p, 0);*/
+                    BufferedWriter f = new BufferedWriter(new FileWriter(act.getFilesDir() + HIGHSCORE_FILE));
+
+
+
+                    int counter2 = 0;
+                    while(receivingInfo[counter2] != null){
+                        f.write(receivingInfo[counter2] + "\n");
+                        counter2++;
+                    }
+                    f.write(Boolean.toString(levelCompleted)+"\n");
+
+
+
+                    if (starsEarnedFile <= starsEarned) {
+                        f.write(Integer.toString(starsEarned) + "\n");
+                    }else{
+                        f.write(Integer.toString(starsEarnedFile) + "\n");
+                    }
+
+                    f.close();
+                } catch (Exception e) {
+                    Log.d(MainActivity.LOG_ID, "WriteHiScore", e);
+                }
+
             }
 
 
@@ -942,6 +971,12 @@ public class PlayScreen extends Screen {
             starsEarned = 1;
         }
         gamestate = State.WIN;
+        levelCompleted = true;
+
+
+
+
+
     }
 
     public void spawnEnemy(EnemyType enemyType){
@@ -976,10 +1011,6 @@ public class PlayScreen extends Screen {
     public boolean onTouch(MotionEvent e) {
         switch (e.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if(gamestate == State.PLAYERDIED || gamestate == State.WIN){
-                    act.onBackPressed(); //just simulates them pressing the back button, resets the game stats and whatnot
-                }
-
 
                 break;
 
@@ -994,8 +1025,23 @@ public class PlayScreen extends Screen {
                 }
 
                 break;
-
             case MotionEvent.ACTION_UP:
+                //just using these time checks so I dont have to make a new one. There is no flush mouse hits method for some reason so I have to add a delay
+                if(firstStarTimeCheck != 0) {
+                    if (firstStarTimeCheck + (ONESEC_NANOS) < frtime) {
+                        if ((gamestate == State.PLAYERDIED || gamestate == State.WIN)) {
+                            act.onBackPressed(); //just simulates them pressing the back button, resets the game stats and whatnot
+
+                        }
+                    }
+                }else{
+                    if(playerShip.getShipExplosionActivateTime() + (ONESEC_NANOS)<frtime){
+                        if ((gamestate == State.PLAYERDIED || gamestate == State.WIN)) {
+                            act.onBackPressed(); //just simulates them pressing the back button, resets the game stats and whatnot
+
+                        }
+                    }
+                }
                 playerShip.setSpaceshipIsMoving(false);
 
                 break;
