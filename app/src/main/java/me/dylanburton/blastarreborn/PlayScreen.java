@@ -27,7 +27,7 @@
         import java.util.Random;
 
         import me.dylanburton.blastarreborn.enemies.Battlecruiser;
-        import me.dylanburton.blastarreborn.enemies.Battleship;
+        import me.dylanburton.blastarreborn.enemies.Mothership;
         import me.dylanburton.blastarreborn.enemies.Berserker;
         import me.dylanburton.blastarreborn.enemies.Enemy;
         import me.dylanburton.blastarreborn.enemies.EnemyType;
@@ -71,7 +71,7 @@ public class PlayScreen extends Screen {
     private int height = 0;
     //bitmap with a rect used for drawing
     private Bitmap starbackground, spaceship[], spaceshipHit[], spaceshipLaser, fighter, fighterOrb, fighterHit, explosion[], gameOverOverlay, playerDiedText, playerWonText,filledstar,emptystar;
-    private Bitmap imperial, imperialHit, berserker, berserkerHit, berserkerReverse, battlecruiser, battlecruiserHit, battleship, battleshipHit;
+    private Bitmap imperial, imperialHit, imperialOrb, berserker, berserkerHit, berserkerReverse, battlecruiser, battlecruiserHit, mothership, mothershipHit;
     private Rect scaledDst = new Rect();
 
     //main spaceship
@@ -109,7 +109,7 @@ public class PlayScreen extends Screen {
     private int starsEarnedFile = 0;
     private boolean levelCompleted = false;
 
-    private String[] receivingInfo = new String[12];
+    private String[] receivingInfo = new String[13];
 
 
 
@@ -150,6 +150,7 @@ public class PlayScreen extends Screen {
 
             imperial = act.getScaledBitmap("enemies/imperial.png");
             imperialHit = act.getScaledBitmap("enemies/imperialhit.png");
+            imperialOrb = act.getScaledBitmap("enemies/imperialorb.png");
 
             berserker = act.getScaledBitmap("enemies/berserker.png");
             berserkerHit = act.getScaledBitmap("enemies/berserkerhit.png");
@@ -158,11 +159,8 @@ public class PlayScreen extends Screen {
             battlecruiser = act.getScaledBitmap("enemies/battlecruiser.png");
             battlecruiserHit = act.getScaledBitmap("enemies/battlecruiserhit.png");
 
-            battleship = act.getScaledBitmap("enemies/battleship.png");
-            battleshipHit = act.getScaledBitmap("enemies/battleshiphit.png");
-
-
-
+            mothership = act.getScaledBitmap("enemies/mothership.png");
+            mothershipHit = act.getScaledBitmap("enemies/mothershiphit.png");
 
             //explosion
             explosion = new Bitmap[12];
@@ -231,6 +229,8 @@ public class PlayScreen extends Screen {
 
         gamestate = State.RUNNING;
 
+
+        // add score data for level screen
         try {
             BufferedReader f = new BufferedReader(new FileReader(act.getFilesDir() + HIGHSCORE_FILE));
             String receiveString = "";
@@ -241,13 +241,22 @@ public class PlayScreen extends Screen {
                 receivingInfo[i] = f.readLine();
             }
 
-            f.readLine();//getting past level completed boolean
-            if((receiveString = f.readLine())!= null) {
+            receiveString = f.readLine();
+
+            //this looks weird but works i swear on me mum
+            if(receiveString != "false" && (receiveString = f.readLine())!= null) {
                 starsEarnedFile = Integer.parseInt(receiveString);
+
+            }
+
+            //now read the rest if there is any
+            for(int i = ((currentLevel-1)*2)+2; i < 12; i++){
+                receivingInfo[i] = f.readLine();
             }
 
         }catch (Exception e){
 
+            e.printStackTrace();
         }
 
 
@@ -296,7 +305,12 @@ public class PlayScreen extends Screen {
             shipExplosions.add(new ShipExplosion(e.getX() - e.getBitmap().getWidth() * 3 / 4, e.getY() - e.getBitmap().getHeight() / 2, e));
         }else if(e.getEnemyType() == EnemyType.BERSERKER){
             shipExplosions.add(new ShipExplosion(e.getX() + e.getBitmap().getWidth()/3, e.getY() + e.getBitmap().getHeight()/3,e));
+        }else if(e.getEnemyType() == EnemyType.IMPERIAL){
+            shipExplosions.add(new ShipExplosion(e.getX() , e.getY() + e.getBitmap().getHeight()/4,e));
+        }else if(e.getEnemyType() == EnemyType.BATTLECRUISER){
+            //todo add implementation for shipexplosion
         }
+
         e.setX(10000);
         e.setAIDisabled(true);
         enemiesDestroyed++;
@@ -433,7 +447,7 @@ public class PlayScreen extends Screen {
                                 shipLasers.add(new ShipLaser(fighterOrb, e.getX()+e.getBitmap().getWidth()/3, e.getY()+e.getBitmap().getHeight()*3/4));
                                 shipLasers.add(new DiagonalLaser(fighterOrb, e.getX()+e.getBitmap().getWidth()/6, e.getY()+e.getBitmap().getHeight()/2,-1));
                             }else if(e.getEnemyType() == EnemyType.IMPERIAL){
-                                //todo add implementation of imperial
+                                shipLasers.add(new ShipLaser(imperialOrb, e.getX() + e.getBitmap().getWidth()/3, e.getY() + e.getBitmap().getHeight()*4/5));
                             }
 
                         }
@@ -462,7 +476,7 @@ public class PlayScreen extends Screen {
                             e.setAIStarted(true);
                         }
 
-                        if (e.getEnemyType() == EnemyType.FIGHTER) {
+                        if (e.getEnemyType() != EnemyType.BERSERKER) {
                             for (int i = 0; i < enemiesFlying.size(); i++) {
                                 if ((e != enemiesFlying.get(i))) {
                                     if ((e.getX() >= enemiesFlying.get(i).getX() - enemiesFlying.get(i).getBitmap().getWidth() && e.getX() <= enemiesFlying.get(i).getX() + enemiesFlying.get(i).getBitmap().getWidth()) &&
@@ -705,18 +719,15 @@ public class PlayScreen extends Screen {
 
                         //puts like a red tinge on the enemy for 100 ms if hes hit
                         if (e.isEnemyHitButNotDead()) {
-                            if(e.getEnemyType() == EnemyType.BERSERKER){
-                                c.drawBitmap(berserkerHit, e.getX(), e.getY(), p);
-                            }else if(e.getEnemyType() == EnemyType.FIGHTER) {
-                                c.drawBitmap(fighterHit, e.getX(), e.getY(), p);
-                            }
+
+                            c.drawBitmap(e.getHitBitmap(), e.getX(), e.getY(), p);
 
                             if (e.getHitContactTimeForTinge() + (ONESEC_NANOS / 10) < frtime) {
                                 e.setEnemyIsHitButNotDead(false);
                             }
 
                         } else {
-                            if(e.getEnemyType() == EnemyType.FIGHTER) {
+                            if(e.getEnemyType() != EnemyType.BERSERKER) {
                                 c.drawBitmap(e.getBitmap(), e.getX(), e.getY(), p);
                             }else if(e.getEnemyType() == EnemyType.BERSERKER){
                                 if(e.getVy()>0){
@@ -924,33 +935,7 @@ public class PlayScreen extends Screen {
                 }
 
                 drawCenteredText(c, "Press to continue", height*4/5,p,0);
-                
-                //write to data file
-                try {
 
-                    BufferedWriter f = new BufferedWriter(new FileWriter(act.getFilesDir() + HIGHSCORE_FILE));
-
-
-
-                    int counter2 = 0;
-                    while(receivingInfo[counter2] != null){
-                        f.write(receivingInfo[counter2] + "\n");
-                        counter2++;
-                    }
-                    f.write(Boolean.toString(levelCompleted)+"\n");
-
-
-
-                    if (starsEarnedFile <= starsEarned) {
-                        f.write(Integer.toString(starsEarned) + "\n");
-                    }else{
-                        f.write(Integer.toString(starsEarnedFile) + "\n");
-                    }
-
-                    f.close();
-                } catch (Exception e) {
-                    Log.d(MainActivity.LOG_ID, "WriteHiScore", e);
-                }
 
             }
 
@@ -973,6 +958,40 @@ public class PlayScreen extends Screen {
         gamestate = State.WIN;
         levelCompleted = true;
 
+        //write to data file
+        try {
+
+            BufferedWriter f = new BufferedWriter(new FileWriter(act.getFilesDir() + HIGHSCORE_FILE));
+
+
+
+            for(int i = 0; i < (currentLevel-1)*2; i++){
+                f.write(receivingInfo[i] + "\n");
+            }
+
+
+            f.write(Boolean.toString(levelCompleted)+"\n");
+
+            if (starsEarnedFile <= starsEarned) {
+                f.write(Integer.toString(starsEarned) + "\n");
+            }else{
+                f.write(Integer.toString(starsEarnedFile) + "\n");
+            }
+
+            for(int i = ((currentLevel-1)*2)+2; i < 13; i++){
+                f.write(receivingInfo[i] + "\n");
+            }
+
+            /*int counter = (currentLevel-1)*2;
+            while(receivingInfo[counter] != null && counter != 12){
+                f.write(receivingInfo[counter]);
+                counter++;
+            }*/
+
+            f.close();
+        } catch (Exception e) {
+            Log.d(MainActivity.LOG_ID, "WriteHiScore", e);
+        }
 
 
 
@@ -981,17 +1000,17 @@ public class PlayScreen extends Screen {
 
     public void spawnEnemy(EnemyType enemyType){
         if(enemyType == EnemyType.FIGHTER) {
-            enemiesFlying.add(new Fighter(fighter));
+            enemiesFlying.add(new Fighter(fighter, fighterHit));
         }else if(enemyType == EnemyType.IMPERIAL){
-            enemiesFlying.add(new Imperial(imperial));
+            enemiesFlying.add(new Imperial(imperial, imperialHit));
 
         }else if(enemyType == EnemyType.BERSERKER){
-            enemiesFlying.add(new Berserker(berserker));
+            enemiesFlying.add(new Berserker(berserker, berserkerHit));
 
-        }else if(enemyType == EnemyType.BATTLESHIP){
-            enemiesFlying.add(new Battleship(battleship));
+        }else if(enemyType == EnemyType.MOTHERSHIP){
+            enemiesFlying.add(new Mothership(mothership, mothershipHit));
         }else if(enemyType == EnemyType.BATTLECRUISER){
-            enemiesFlying.add(new Battlecruiser(battlecruiser));
+            enemiesFlying.add(new Battlecruiser(battlecruiser, battlecruiserHit));
         }
     }
 

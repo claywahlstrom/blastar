@@ -6,13 +6,13 @@ import android.graphics.Bitmap;
  * Created by Dylan on 7/19/2017.
  */
 
-public class Battleship extends Enemy {
+public class Mothership extends Enemy {
 
     private static final int RANDOM_DIRECTION_SPEED = 5000;
 
-    public Battleship(Bitmap shipBitmap){
+    public Mothership(Bitmap shipBitmap, Bitmap btmHit){
         //calls main Enemy constructor
-        super(shipBitmap, EnemyType.BATTLESHIP);
+        super(shipBitmap, btmHit, EnemyType.MOTHERSHIP);
 
     }
 
