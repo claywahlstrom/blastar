@@ -39,18 +39,18 @@ public class Level1 extends Level{
 
             if(updateCheckerBoundary == 0) {
                 for (int i = 0; i < 3; i++) {
-                    ps.spawnEnemy(EnemyType.FIGHTER);
+                    ps.spawnEnemy(EnemyType.IMPERIAL,true);
                 }
-                ps.spawnEnemy(EnemyType.IMPERIAL);
             }
 
             updateCheckerBoundary = 2;
         }else if(ps.getEnemiesDestroyed() >= 2 && ps.getEnemiesDestroyed() < 4){
 
             if(updateCheckerBoundary == 2) {
-                for (int i = 0; i < 3; i++) {
-                    ps.spawnEnemy(EnemyType.FIGHTER);
+                for (int i = 0; i < 2; i++) {
+                    ps.spawnEnemy(EnemyType.FIGHTER,true);
                 }
+                ps.spawnEnemy(EnemyType.BATTLECRUISER,true);
             }
 
             updateCheckerBoundary = 4;
@@ -58,9 +58,8 @@ public class Level1 extends Level{
 
             if(updateCheckerBoundary == 4) {
                 for (int i = 0; i < 3; i++) {
-                    ps.spawnEnemy(EnemyType.FIGHTER);
+                    ps.spawnEnemy(EnemyType.IMPERIAL,true);
                 }
-                ps.spawnEnemy(EnemyType.BERSERKER);
             }else if(updateCheckerBoundary == 2){
                 updateCheckerBoundary = 4;
             }
@@ -68,7 +67,7 @@ public class Level1 extends Level{
             updateCheckerBoundary = 9;
         }
 
-        if(ps.getEnemiesDestroyed() == 10){
+        if(ps.getEnemiesDestroyed() == 9){
             ps.playerWon();
         }
 

@@ -39,9 +39,9 @@ public class Level4 extends Level {
 
             if(updateCheckerBoundary == 0) {
                 for (int i = 0; i < 3; i++) {
-                    ps.spawnEnemy(EnemyType.FIGHTER);
+                    ps.spawnEnemy(EnemyType.IMPERIAL,true);
                 }
-                ps.spawnEnemy(EnemyType.BERSERKER);
+                ps.spawnEnemy(EnemyType.FIGHTER,true);
             }
 
             updateCheckerBoundary = 2;
@@ -49,25 +49,36 @@ public class Level4 extends Level {
 
             if(updateCheckerBoundary == 2) {
                 for (int i = 0; i < 3; i++) {
-                    ps.spawnEnemy(EnemyType.FIGHTER);
+                    ps.spawnEnemy(EnemyType.BATTLECRUISER,true);
                 }
             }
 
             updateCheckerBoundary = 4;
-        }else if(ps.getEnemiesDestroyed() >= 4){
+        }else if(ps.getEnemiesDestroyed() >= 4 && ps.getEnemiesDestroyed() < 6){
 
             if(updateCheckerBoundary == 4) {
                 for (int i = 0; i < 3; i++) {
-                    ps.spawnEnemy(EnemyType.FIGHTER);
+                    ps.spawnEnemy(EnemyType.FIGHTER,true);
                 }
             }else if(updateCheckerBoundary == 2){
                 updateCheckerBoundary = 4;
             }
 
             updateCheckerBoundary = 9;
+        }else if(ps.getEnemiesDestroyed() >=6){
+            if(updateCheckerBoundary == 9){
+                for (int i = 0; i < 3; i++) {
+                    ps.spawnEnemy(EnemyType.IMPERIAL,true);
+                }
+                for (int i = 0; i < 3; i++) {
+                    ps.spawnEnemy(EnemyType.FIGHTER,true);
+                }
+            }
+
+            updateCheckerBoundary = 11;
         }
 
-        if(ps.getEnemiesDestroyed() == 10){
+        if(ps.getEnemiesDestroyed() == 16){
             ps.playerWon();
         }
 
