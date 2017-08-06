@@ -7,31 +7,23 @@ package me.dylanburton.blastarreborn.enemies;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import me.dylanburton.blastarreborn.lasers.ShipLaser;
 import me.dylanburton.blastarreborn.spaceships.Ship;
+import me.dylanburton.blastarreborn.spaceships.ShipType;
 
 /**
  * An enemy is a template for all the enemies     */
-public class Enemy extends Ship {
-    private final float HALF_DIVISOR = 1.9f;  //changing the dimensions to be consistent
-    private EnemyType enemyType;
+public class Enemy implements Ship {
+    private ShipType shipType;
     private Bitmap btm;
     private Bitmap btmHit;
+    private float x;
+    private float y;
     private float vx=0;
     private float vy=0;
     private int points;
     private int lives;
-    private float width=0; // width onscreen
-    private float height=0;  // height onscreen
-    private float halfWidth = 0;  // convenience
-    private float halfHeight = 0;
     private boolean enemyIsHitButNotDead = false; //specific yet helpful boolean for my hit animation
-    private long explosionActivateTime; //adding so I dont have to delete the enemy after explosion for a couple seconds, this way their orbs dont dissapear
     private long hitContactTimeForTinge = 0; //for if the laser hits the enemy
-    private long hitContactTimeForExplosions = 0; //for if the laser hits the enemy
 
     // firing stuff
     private float randomlyGeneratedEnemyFiringTimeInSeconds; //variable for enemy firing stuff
@@ -61,18 +53,14 @@ public class Enemy extends Ship {
 
     }
 
-    public Enemy(Bitmap bitmap, Bitmap btmHit, EnemyType enemyType, boolean isWorthEnemyDestroyedPoint) {
+    public Enemy(Bitmap bitmap, Bitmap btmHit, ShipType shipType, boolean isWorthEnemyDestroyedPoint) {
         setX(0);
         setY(-50);
         this.btmHit = btmHit;
         this.btm = bitmap;
-        this.width = bitmap.getWidth();
-        this.height = bitmap.getHeight();
-        this.halfWidth = width / HALF_DIVISOR;
-        this.halfHeight = height / HALF_DIVISOR;
-        this.lives = enemyType.getLives();
-        this.points = enemyType.getPoints();
-        this.enemyType = enemyType;
+        this.lives = shipType.getLives();
+        this.points = shipType.getPoints();
+        this.shipType = shipType;
         setWorthEnemyDestroyedPoint(isWorthEnemyDestroyedPoint);
     }
 
@@ -225,29 +213,12 @@ public class Enemy extends Ship {
     public void setEnemyFiringTime(long enemyFiringTime) {
         this.enemyFiringTime = enemyFiringTime;
     }
-    public long getExplosionActivateTime() {
-        return explosionActivateTime;
-    }
-
-    public void setExplosionActivateTime(long explosionActivateTime) {
-        this.explosionActivateTime = explosionActivateTime;
-    }
     public long getHitContactTimeForTinge() {
         return hitContactTimeForTinge;
     }
 
     public void setHitContactTimeForTinge(long hitContactTime) {
         this.hitContactTimeForTinge = hitContactTime;
-    }
-    public long getHitContactTimeForExplosions() {
-        return hitContactTimeForTinge;
-    }
-
-    public void setHitContactTimeForExpl(long hitContactTime) {
-        this.hitContactTimeForTinge = hitContactTime;
-    }
-    public void setHitContactTimeForExplosions(long hitContactTimeForExplosions) {
-        this.hitContactTimeForExplosions = hitContactTimeForExplosions;
     }
     public boolean isAIDisabled() {
         return isAIDisabled;
@@ -257,12 +228,12 @@ public class Enemy extends Ship {
         isAIDisabled = AIDisabled;
     }
 
-    public EnemyType getEnemyType() {
-        return enemyType;
+    public ShipType getShipType() {
+        return shipType;
     }
 
-    public void setEnemyType(EnemyType enemyType) {
-        this.enemyType = enemyType;
+    public void setShipType(ShipType shipType) {
+        this.shipType = shipType;
     }
 
 
@@ -274,6 +245,26 @@ public class Enemy extends Ship {
 
     public void setWorthEnemyDestroyedPoint(boolean worthEnemyDestroyedPoint) {
         isWorthEnemyDestroyedPoint = worthEnemyDestroyedPoint;
+    }
+
+    @Override
+    public float getX() {
+        return x;
+    }
+
+    @Override
+    public void setX(float x) {
+        this.x = x;
+    }
+
+    @Override
+    public float getY() {
+        return y;
+    }
+
+    @Override
+    public void setY(float y) {
+        this.y = y;
     }
 
 

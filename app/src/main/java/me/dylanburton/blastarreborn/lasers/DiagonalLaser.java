@@ -2,6 +2,9 @@ package me.dylanburton.blastarreborn.lasers;
 
 import android.graphics.Bitmap;
 
+import me.dylanburton.blastarreborn.spaceships.Ship;
+import me.dylanburton.blastarreborn.spaceships.ShipType;
+
 /**
  * Created by Dylan on 7/16/2017.
  */
@@ -10,9 +13,10 @@ public class DiagonalLaser extends ShipLaser{
 
 
 
-    public DiagonalLaser(Bitmap laserBitmap, float x, float y, int slope ){ //slope, dont input 0 into parameter because thats not a diagonal line, thats horizontal
+    public DiagonalLaser(Ship ship, Bitmap laserBitmap, float x, float y, int slope ){ //slope, dont input 0 into parameter because thats not a diagonal line, thats horizontal
 
 
+        setShip(ship);
         setEnemyLaser(true);
         setBmp(laserBitmap);
 

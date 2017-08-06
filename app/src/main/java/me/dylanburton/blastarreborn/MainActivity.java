@@ -38,6 +38,7 @@ public class MainActivity extends ActionBarActivity {
     Screen entryScreen;
     PlayScreen playScreen;
     LevelScreen levelScreen;
+    AboutScreen aboutScreen;
     Screen currentScreen;
     FullScreenView mainView;
     Typeface gamefont;
@@ -73,6 +74,7 @@ public class MainActivity extends ActionBarActivity {
             // create screens
             entryScreen = new EntryScreen(this);
             playScreen = new PlayScreen(this);
+            aboutScreen = new AboutScreen(this);
             levelScreen = new LevelScreen(playScreen, this);
 
             mainView = new FullScreenView(this);
@@ -120,15 +122,13 @@ public class MainActivity extends ActionBarActivity {
         if(currentScreen != entryScreen) {
             if(currentScreen == playScreen){
 
-
-                levelScreen.resetVariables();
                 currentScreen = levelScreen;
-                playScreen.resetGame();
-
 
             }else if(currentScreen == levelScreen){
                 currentScreen = entryScreen;
                 levelScreen.resetVariables();
+            }else if(currentScreen == aboutScreen){
+                currentScreen = entryScreen;
             }
 
         }else{
@@ -216,6 +216,7 @@ public class MainActivity extends ActionBarActivity {
             try {
                 while(isRendering){
                     while(!holder.getSurface().isValid()) {
+                        //this is the delay before the screen starts
                         try {
                             Thread.sleep(10);
                         } catch (Exception e) { /* we don't care */  }

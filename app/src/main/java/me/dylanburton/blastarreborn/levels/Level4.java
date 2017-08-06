@@ -8,7 +8,7 @@ import java.io.InputStream;
 
 import me.dylanburton.blastarreborn.MainActivity;
 import me.dylanburton.blastarreborn.PlayScreen;
-import me.dylanburton.blastarreborn.enemies.EnemyType;
+import me.dylanburton.blastarreborn.spaceships.ShipType;
 
 /**
  * Created by Dylan on 7/25/2017.
@@ -16,8 +16,9 @@ import me.dylanburton.blastarreborn.enemies.EnemyType;
 
 public class Level4 extends Level {
     private Bitmap map;
+    private Bitmap mapEdge;
     private PlayScreen ps;
-    private int updateCheckerBoundary = 0; //defends against the checkers constantly drawing ships
+    private int updateLevelStage = 0; //defends against the checkers constantly drawing ships
 
     public Level4(PlayScreen ps, MainActivity act){
 
@@ -25,9 +26,11 @@ public class Level4 extends Level {
 
         try {
             AssetManager assetManager = act.getAssets();
-            InputStream inputStream = assetManager.open("maps/lavamap.jpg");
+            InputStream inputStream = assetManager.open("maps/map4.jpg");
             map = BitmapFactory.decodeStream(inputStream);
+            mapEdge = BitmapFactory.decodeStream(assetManager.open("maps/map4edges.png"));
             inputStream.close();
+
         }catch(Exception e){
             //dont care sorry
         }
@@ -35,47 +38,48 @@ public class Level4 extends Level {
 
     public void checkLevelSequence(){
 
-        if(ps.getEnemiesDestroyed() >=0 && ps.getEnemiesDestroyed() < 2) {
+        if(ps.getEnemiesDestroyed() >=0) {
 
-            if(updateCheckerBoundary == 0) {
+            if(updateLevelStage == 0) {
                 for (int i = 0; i < 3; i++) {
-                    ps.spawnEnemy(EnemyType.IMPERIAL,true);
+                    ps.spawnEnemy(ShipType.IMPERIAL,true);
                 }
-                ps.spawnEnemy(EnemyType.FIGHTER,true);
+                ps.spawnEnemy(ShipType.FIGHTER,true);
+                updateLevelStage = 1;
             }
 
-            updateCheckerBoundary = 2;
-        }else if(ps.getEnemiesDestroyed() >= 2 && ps.getEnemiesDestroyed() < 4){
+        }
+        if(ps.getEnemiesDestroyed() >= 2){
 
-            if(updateCheckerBoundary == 2) {
+            if(updateLevelStage == 1) {
                 for (int i = 0; i < 3; i++) {
-                    ps.spawnEnemy(EnemyType.BATTLECRUISER,true);
+                    ps.spawnEnemy(ShipType.BATTLECRUISER,true);
                 }
+                updateLevelStage = 2;
             }
 
-            updateCheckerBoundary = 4;
-        }else if(ps.getEnemiesDestroyed() >= 4 && ps.getEnemiesDestroyed() < 6){
+        }
+        if(ps.getEnemiesDestroyed() >= 4){
 
-            if(updateCheckerBoundary == 4) {
+            if(updateLevelStage == 2) {
                 for (int i = 0; i < 3; i++) {
-                    ps.spawnEnemy(EnemyType.FIGHTER,true);
+                    ps.spawnEnemy(ShipType.FIGHTER,true);
                 }
-            }else if(updateCheckerBoundary == 2){
-                updateCheckerBoundary = 4;
+                updateLevelStage = 3;
             }
 
-            updateCheckerBoundary = 9;
-        }else if(ps.getEnemiesDestroyed() >=6){
-            if(updateCheckerBoundary == 9){
+        }
+        if(ps.getEnemiesDestroyed() >=6){
+            if(updateLevelStage == 3){
                 for (int i = 0; i < 3; i++) {
-                    ps.spawnEnemy(EnemyType.IMPERIAL,true);
+                    ps.spawnEnemy(ShipType.IMPERIAL,true);
                 }
                 for (int i = 0; i < 3; i++) {
-                    ps.spawnEnemy(EnemyType.FIGHTER,true);
+                    ps.spawnEnemy(ShipType.FIGHTER,true);
                 }
+                updateLevelStage = 4;
             }
 
-            updateCheckerBoundary = 11;
         }
 
         if(ps.getEnemiesDestroyed() == 16){
@@ -84,15 +88,17 @@ public class Level4 extends Level {
 
     }
 
-    public int getUpdateCheckerBoundary() {
-        return updateCheckerBoundary;
+    public int getUpdateLevelStage() {
+        return updateLevelStage;
     }
 
-    public void setUpdateCheckerBoundary(int updateCheckerBoundary) {
-        this.updateCheckerBoundary = updateCheckerBoundary;
+    public void setUpdateLevelStage(int updateLevelStage) {
+        this.updateLevelStage = updateLevelStage;
     }
 
     public Bitmap getMap() {
         return map;
     }
+
+    public Bitmap getMapEdge(){ return mapEdge; }
 }
