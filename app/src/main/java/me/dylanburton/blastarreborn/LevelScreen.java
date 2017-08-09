@@ -12,6 +12,8 @@ import android.view.View;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
+import me.dylanburton.blastarreborn.utils.Sound;
+
 /**
  * Created by Dylan on 7/19/2017.
  */
@@ -77,10 +79,14 @@ public class LevelScreen extends Screen {
             width = v.getWidth();
             height = v.getHeight();
 
+            act.playSound(Sound.LEVEL_SELECTION);
+
+
             realWidth = v.getWidth();
             realHeight = v.getHeight();
 
             startZoomAnimation = true;
+            //center of screen zoom in
             levelScreenCoords[0] = width/2;
             levelScreenCoords[1] = height/2;
             levelScreenCoords[2] = width/2;
@@ -116,6 +122,7 @@ public class LevelScreen extends Screen {
 
         scaledDst.set(0,0,realWidth, realHeight);
         c.drawBitmap(starbackground,null,scaledDst,p);
+        //0 and 2 is width left and right, 1 and 3 is height top to bottom
         levelScreenBounds.set(levelScreenCoords[0], levelScreenCoords[1], levelScreenCoords[2], levelScreenCoords[3]);
         if(startZoomAnimation){
             levelScreenCoords[0] -= 10;
@@ -123,7 +130,7 @@ public class LevelScreen extends Screen {
             levelScreenCoords[2] += 10;
             levelScreenCoords[3] += 16;
 
-            if(levelScreenCoords[0] < width/20){
+            if(levelScreenCoords[0] < width/9){
                 startZoomAnimation = false;
             }
 

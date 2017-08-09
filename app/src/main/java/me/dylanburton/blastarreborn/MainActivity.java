@@ -1,5 +1,6 @@
 package me.dylanburton.blastarreborn;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
@@ -7,9 +8,11 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Typeface;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.media.SoundPool;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
@@ -26,7 +29,9 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends ActionBarActivity {
+import me.dylanburton.blastarreborn.utils.Sound;
+
+public class MainActivity extends Activity {
     static final String LOG_ID = "Dylan";
     static final float EXPECTED_DENSITY = 315.0f;  // original target density of runtime device
     static final float EXPECTED_WIDTH = 720.0f;  // original target width of runtime device
@@ -43,6 +48,7 @@ public class MainActivity extends ActionBarActivity {
     FullScreenView mainView;
     Typeface gamefont;
     Typeface levelfont;
+    MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,12 +86,27 @@ public class MainActivity extends ActionBarActivity {
             mainView = new FullScreenView(this);
             setContentView(mainView);
 
+            playSound(Sound.ENTRY);
         } catch (Exception e) {
             // tell me specifically whats happening and where
             Log.d(LOG_ID, "onCreate", e);
         }
     }
 
+    public void playSound(Sound s){
+        if(mediaPlayer != null && mediaPlayer.isPlaying()){
+            mediaPlayer.stop();
+        }
+        if(s == Sound.BATTLE){
+            mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.battlemusic);
+        }else if(s == Sound.LEVEL_SELECTION){
+            mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.level);
+        }else if(s == Sound.ENTRY){
+            mediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.entry);
+        }
+
+        mediaPlayer.start();
+    }
     BitmapFactory.Options sboptions = new BitmapFactory.Options();
     /**
      * load and scale bitmap according to the apps scale factors.
@@ -112,6 +133,7 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
         mainView.resume();
+        mediaPlayer.start();
     }
 
     /*
@@ -122,9 +144,12 @@ public class MainActivity extends ActionBarActivity {
         if(currentScreen != entryScreen) {
             if(currentScreen == playScreen){
 
+                levelScreen.resetVariables();
+                playSound(Sound.LEVEL_SELECTION);
                 currentScreen = levelScreen;
 
             }else if(currentScreen == levelScreen){
+                playSound(Sound.ENTRY);
                 currentScreen = entryScreen;
                 levelScreen.resetVariables();
             }else if(currentScreen == aboutScreen){
@@ -145,6 +170,7 @@ public class MainActivity extends ActionBarActivity {
     protected void onPause() {
         super.onPause();
         mainView.pause();
+        mediaPlayer.pause();
     }
 
     @Override
